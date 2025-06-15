@@ -5,4 +5,5 @@ type User struct {
 	Email    string `json:"email"`
 	Username string `json:"username"`
 	Password string `json:"-" db:"password_hash"`
+	APIKey   string `json:"api_key"`
 }

@@ -30,7 +30,7 @@ func InitDB() (*sql.DB, error) {
 			return
 		}
 
-		createTable := `
+		createUsersTable := `
 		CREATE TABLE IF NOT EXISTS users (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			email TEXT NOT NULL UNIQUE,
@@ -38,7 +38,21 @@ func InitDB() (*sql.DB, error) {
 			password_hash TEXT NOT NULL,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		);`
-		if _, err = DB.Exec(createTable); err != nil {
+
+		createMonitoredURLsTable := `
+		CREATE TABLE IF NOT EXISTS monitored_urls (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			user_id INTEGER NOT NULL,
+			url TEXT NOT NULL,
+			label TEXT,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (user_id) REFERENCES users(id)
+		);`
+
+		if _, err = DB.Exec(createUsersTable); err != nil {
+			return
+		}
+		if _, err = DB.Exec(createMonitoredURLsTable); err != nil {
 			return
 		}
 	})

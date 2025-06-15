@@ -38,11 +38,20 @@ func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	hashed, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+
+	apikey, err := GenerateAPIKey()
+	if err != nil {
+		http.Error(w, "failed to generate API key", http.StatusInternalServerError)
+		return
+	}
+
 	user := &User{
 		Email:    req.Email,
 		Username: req.Username,
 		Password: string(hashed),
+		APIKey:   apikey,
 	}
+
 	if err := h.Repo.CreateUser(user); err != nil {
 		http.Error(w, "could not create user", http.StatusInternalServerError)
 		return
@@ -111,5 +120,24 @@ func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
 		"username": username,
+	})
+}
+
+func (h *AuthHandler) APIKey(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(UsernameContextKey).(int64)
+	if !ok {
+		http.Error(w, "User not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	user, err := h.Repo.GetUserByID(userID)
+	if err != nil {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"api_key": user.APIKey,
 	})
 }

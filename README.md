@@ -37,20 +37,29 @@ UIの起動方法
 
 latency-lens/
 ├── cmd/
-│   └── server/           # アプリケーションのエントリポイント
+│   └── server/           # アプリケーションのエントリ
 │       └── main.go
+|       |__ router.go
 ├── internal/
 │   ├── api/              # HTTPハンドラなどAPI層
 │   │   ├── handler.go
 │   │   └── middleware.go
-│   ├── auth/             # APIキー認証などの認証ロジック
+│   ├── auth/             # APIキー認証などの認証ロジッ
+|   |
 │   │   └── middleware.go
+|   |   |__ handler.go
+|   |   |__ jwt.go
+|   |   |__ hash.go
+|   |   |__ model.go
+|   |   |__ repository.go
+|   |  
 │   ├── collector/        # 計測したリクエストの保存・取得
 │   │   └── collector.go
 │   ├── stats/            # P50, P95, P99 などの統計計算
 │   │   └── stats.go
 │   └── config/           # 設定・APIキー管理など
 │       └── config.go
+|       |__ database.go
 ├── ui/                   
 │   └── next.jsコンポーネント
 ├── go.mod
