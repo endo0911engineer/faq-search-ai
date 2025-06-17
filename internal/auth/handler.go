@@ -124,7 +124,7 @@ func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) APIKey(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value(UsernameContextKey).(int64)
+	userID, ok := r.Context().Value(UserIDContextKey).(int64)
 	if !ok {
 		http.Error(w, "User not found in context", http.StatusInternalServerError)
 		return

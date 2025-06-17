@@ -52,6 +52,7 @@ latency-lens/
 |   |   |__ hash.go
 |   |   |__ model.go
 |   |   |__ repository.go
+|   |   |__ service.go
 |   |  
 │   ├── collector/        # 計測したリクエストの保存・取得
 │   │   └── collector.go
@@ -60,6 +61,13 @@ latency-lens/
 │   └── config/           # 設定・APIキー管理など
 │       └── config.go
 |       |__ database.go
+|   |
+|   |__ monitor/
+|       |__ handler.go
+|       |__ model.go
+|       |__ repository.go
+|       |__ service.go
+|
 ├── ui/                   
 │   └── next.jsコンポーネント
 ├── go.mod

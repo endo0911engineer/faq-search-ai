@@ -10,7 +10,7 @@ func TestJWTAuthMiddleware_ValidToken(t *testing.T) {
 	secret := "test-secret"
 	t.Setenv("JWT_SECRET", secret)
 
-	token, err := GenerateJWT("123", "testuser")
+	token, err := GenerateJWT(123, "testuser")
 	if err != nil {
 		t.Fatalf("failed to generate token: %v", err)
 	}

@@ -13,8 +13,6 @@ type Stat = {
 
 export default function Dashboard() {
   const [url, setUrl] = useState("");
-  const [urls, setUrls] = useState<string[]>([]);
-  const [newUrl, setNewUrl] = useState("");
   const [metrics, setMetrics] = useState<Stat[]>([]);
   const [username, setUsername] = useState("");
   const [apiKey, setApiKey] = useState("");
@@ -26,6 +24,13 @@ export default function Dashboard() {
     const res = await fetch("http://localhost:8080/me/apikey", {
         headers: { Authorization: `Bearer ${token}` },
     });
+
+    if (!res.ok) {
+    const text = await res.text();
+    console.error("Failed to fetch API key:", text);
+    return;
+    }
+
     const data = await res.json();
     setApiKey(data.api_key);
     setIsVisible(true);
@@ -56,29 +61,9 @@ export default function Dashboard() {
       body: JSON.stringify({ url, duration }),
     });
 
+    await fetchMetrics();
+
     alert(`Request took ${Math.round(duration)} ms`);
-  };
-
-  const fetchUrls = async () => {
-    const res = await fetch("http://localhost:8080/urls", {
-        headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await res.json();
-    setUrls(data.urls);
-  };
-
-  const handleAddUrl = async () => {
-    if (!newUrl) return;
-    await fetch("/api/urls", {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ url: newUrl }),
-    });
-    setNewUrl("");
-    fetchUrls();
   };
 
   const fetchMetrics = async () => {
@@ -114,11 +99,7 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
-    fetchUrls();
-    fetchMetrics();
     fetchUser();
-    const interval = setInterval(fetchMetrics, 2000);
-    return () => clearInterval(interval);
   }, []);
 
   const logout = () => {
@@ -128,30 +109,6 @@ export default function Dashboard() {
 
   return (
   <main className="flex h-screen font-sans">
-    {/* 左カラム：履歴・登録済みURL一覧 */}
-    <aside className="w-1/4 bg-gray-100 p-6 border-r border-gray-300">
-      <h2 className="text-xl font-semibold mb-4">Registered URLs</h2>
-      <div className="mb-4">
-        <input
-          value={newUrl}
-          onChange={(e) => setNewUrl(e.target.value)}
-          placeholder="https://api.example.com/endpoint"
-          className="border px-3 py-2 rounded w-full"
-        />
-        <button
-          onClick={handleAddUrl}
-          className="mt-2 w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
-        >
-          Add
-        </button>
-      </div>
-      <ul className="text-sm space-y-1">
-        {urls.map((url, idx) => (
-          <li key={idx} className="bg-white px-2 py-1 rounded border">{url}</li>
-        ))}
-      </ul>
-    </aside>
-
     {/* 右カラム：ダッシュボード本体 */}
     <section className="flex-1 p-8 overflow-y-auto">
       {/* ヘッダー */}

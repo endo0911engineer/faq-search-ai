@@ -1,13 +1,14 @@
 package auth
 
 import (
+	"fmt"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func GenerateJWT(userID string, username string) (string, error) {
+func GenerateJWT(userID int64, username string) (string, error) {
 	secret := os.Getenv("JWT_SECRET")
 	claims := jwt.MapClaims{
 		"user_id":  userID,
@@ -18,19 +19,22 @@ func GenerateJWT(userID string, username string) (string, error) {
 	return token.SignedString([]byte(secret))
 }
 
-func ParseJWT(tokenStr string) (string, string, error) {
+func ParseJWT(tokenStr string) (int64, string, error) {
 	secret := os.Getenv("JWT_SECRET")
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		return []byte(secret), nil
 	})
 	if err != nil || !token.Valid {
-		return "", "", err
+		return 0, "", err
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
-		userID, _ := claims["user_id"].(string)
+		userIDFloat, ok := claims["user_id"].(float64)
+		if !ok {
+			return 0, "", fmt.Errorf("user_id not found or not float64")
+		}
 		username, _ := claims["username"].(string)
-		return userID, username, nil
+		return int64(userIDFloat), username, nil
 	}
-	return "", "", err
+	return 0, "", fmt.Errorf("invalid token claims")
 }
