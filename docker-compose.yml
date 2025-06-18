@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    volumes:
+      - ./internal/config:/data
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: ui/Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    env_file:
+      - .env
+    restart: unless-stopped
