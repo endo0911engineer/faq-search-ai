@@ -59,3 +59,14 @@ func HandleRecord() http.Handler {
 		w.WriteHeader(http.StatusNoContent)
 	})
 }
+
+func HandleTestAPI() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(1 * time.Second) // 1秒待つ（遅延シミュレーション）
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{
+			"message": "This is a test API response",
+			"status":  "200 OK",
+		})
+	})
+}

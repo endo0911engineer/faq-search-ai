@@ -32,6 +32,8 @@ export default function Dashboard() {
     }
 
     const data = await res.json();
+    localStorage.setItem("apiKey", data.api_key);
+    console.log(localStorage.getItem("apiKey"))
     setApiKey(data.api_key);
     setIsVisible(true);
   };
@@ -56,9 +58,9 @@ export default function Dashboard() {
       method: "POST",
       headers: { 
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        "X-API-Key": localStorage.getItem("apiKey") || "",
        },
-      body: JSON.stringify({ url, duration }),
+      body: JSON.stringify({ label: url, duration }),
     });
 
     await fetchMetrics();
@@ -68,17 +70,22 @@ export default function Dashboard() {
 
   const fetchMetrics = async () => {
     try {
-        const token = localStorage.getItem("token")
+        const apiKey = localStorage.getItem("apiKey")
         const res = await fetch("http://localhost:8080/metrics", {
             headers: {
-                Authorization: `Bearer ${token}`,
+              "X-API-Key": apiKey || "",
             }
         });
+
+        if (!res.ok) {
+        throw new Error(`Failed to fetch metrics: ${res.status}`);
+        }
+        
         const data: Stat[] = await res.json();
         setMetrics(data);
-    } catch (e) {
-      console.error("Error fetching metrics:", e);
-    }
+      } catch (e) {
+        console.error("Error fetching metrics:", e);
+      }
   };
 
   const fetchUser = async () => {
