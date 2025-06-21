@@ -25,6 +25,10 @@ export default function Dashboard() {
   const [username, setUsername] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [isVisible, setIsVisible] = useState(false);
+  const [endpointName, setEndpointName] = useState("")
+  const [endpointUrl, setEndpointUrl] = useState("")
+  const [registeredEndpoints, setRegisteredEndpoints] = useState<{ id: string; name: string; url: string }[]>([])
+  const [naturalLanguageInput, setNaturalLanguageInput] = useState("")
   const router = useRouter();
   const token = localStorage.getItem("token")
 
@@ -113,9 +117,62 @@ export default function Dashboard() {
     }
   }
 
+  const registerEndpoint = async () => {
+  if (!endpointName || !endpointUrl) {
+    return
+  }
+
+  const newEndpoint = {
+    id: crypto.randomUUID(),
+    name: endpointName,
+    url: endpointUrl,
+  }
+
+  setRegisteredEndpoints((prev) => [...prev, newEndpoint])
+  setEndpointName("")
+  setEndpointUrl("")
+}
+
+// エンドポイント登録（自然言語）
+const processNaturalLanguage = async () => {
+  if (!naturalLanguageInput.trim()) {
+    return
+  }
+
+  try {
+    // TODO: 実際のAPIリクエストを行う
+    const response = await fetch("/api/ai/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ description: naturalLanguageInput }),
+    })
+
+    if (!response.ok) {
+      throw new Error("Failed to process description")
+    }
+
+    const data = await response.json()
+
+    const newEndpoint = {
+      id: crypto.randomUUID(),
+      name: data.name,
+      url: data.url,
+    }
+
+    setRegisteredEndpoints((prev) => [...prev, newEndpoint])
+    setNaturalLanguageInput("")
+  } catch (error) {
+    console.error("AI registration error:", error)
+  }
+}
+
   useEffect(() => {
     fetchUser();
   }, []);
+
+
 
   const logout = () => {
     localStorage.removeItem("token");
