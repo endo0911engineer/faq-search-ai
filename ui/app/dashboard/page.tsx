@@ -35,6 +35,7 @@ export default function Dashboard() {
   const [endpointName, setEndpointName] = useState("")
   const [endpointUrl, setEndpointUrl] = useState("")
   const [registeredEndpoints, setRegisteredEndpoints] = useState<Endpoint[]>([])
+  const [advice, setAdvice] = useState("")
   const [token, setToken] = useState<string | null>(null);
   const router = useRouter();
 
@@ -177,6 +178,18 @@ export default function Dashboard() {
         console.error("Error fetching metrics:", e);
       }
   };
+
+  const analyzeLatency = async () => {
+  try {
+    const res = await fetch("http://localhost:8080/LLM/analyze");
+    if (!res.ok) throw new Error(await res.text());
+
+    const data = await res.json();
+    setAdvice(data.advice);
+  } catch (e) {
+    console.error("LLM analysis failed:", e);
+  }
+};
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -347,10 +360,6 @@ export default function Dashboard() {
                     className="font-mono"
                   />
                 </div>
-                <Button onClick={sendRequest} className="bg-green-600 hover:bg-green-700 px-6">
-                  <Send className="h-4 w-4 mr-2" />
-                  Send Request
-                </Button>
               </div>
             </CardContent>
           </Card>

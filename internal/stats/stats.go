@@ -5,6 +5,14 @@ import (
 	"time"
 )
 
+type Stat struct {
+	Label string        `json:"label"`
+	Count int           `json:"count"`
+	P50   time.Duration `json:"p50"`
+	P95   time.Duration `json:"p95"`
+	P99   time.Duration `json:"p99"`
+}
+
 // CalculateStats returns P50, P95, P99 percentiles
 func CalculateStats(samples []time.Duration) (p50, p95, p99 time.Duration) {
 	if len(samples) == 0 {

@@ -2,7 +2,6 @@ package main
 
 import (
 	"latency-lens/internal/config"
-	"latency-lens/internal/llm"
 	"latency-lens/internal/scheduler"
 	"log"
 	"net/http"
@@ -15,7 +14,6 @@ func main() {
 	config.LoadEnv()
 
 	db, err := config.InitDB()
-	llmClient := llm.NewClient()
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -3,72 +3,56 @@ package llm
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 )
 
-type Client interface {
-	ExtractURL(message string) (string, error)
+const openRouterURL = "https://openrouter.ai/api/v1/chat/completions"
+const model = "openrouter/mistral-7b"
+
+type Message struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
 }
 
-type MistralClient struct {
-	APIKey string
+type RequestPayload struct {
+	Model    string    `json:"model"`
+	Messages []Message `json:"messages"`
 }
 
-type openRouterRequest struct {
-	Model    string `json:"model"`
-	Messages []struct {
-		Role    string `json:"role"`
-		Content string `json:"content"`
-	} `json:"messages"`
-}
-
-type openRouterResponse struct {
+type ResponsePayload struct {
 	Choices []struct {
-		Message struct {
-			Content string `json:"content"`
-		} `json:"message"`
+		Message Message `json:"message"`
 	} `json:"choices"`
 }
 
-func NewClient() *MistralClient {
-	return &MistralClient{
-		APIKey: os.Getenv("LLM_API_KEY"),
+func AnalyzeLatencyWithOpenRouter(prompt string) (string, error) {
+	apiKey := os.Getenv("OPENROUTER_API_KEY")
+	if apiKey == "" {
+		return "", fmt.Errorf("missing OPENROUTER_API_KEY")
 	}
-}
 
-func (c *MistralClient) ExtractURL(message string) (string, error) {
-	reqBody := openRouterRequest{
-		Model: "mistral:7b-instruct", // OpenRouter 経由のモデル名
-		Messages: []struct {
-			Role    string `json:"role"`
-			Content string `json:"content"`
-		}{
-			{
-				Role:    "system",
-				Content: "あなたはユーザーからの自然言語を受け取り、文中から1つのURLを抽出するアシスタントです。URL以外の文字列を含めず、1つの完全なURLだけを返してください。",
-			},
-			{
-				Role:    "user",
-				Content: message,
-			},
+	payload := RequestPayload{
+		Model: model,
+		Messages: []Message{
+			{Role: "system", Content: "You are an expert latency performance advisor. Analyze the following latency stats and suggest improvements."},
+			{Role: "user", Content: prompt},
 		},
 	}
 
-	data, err := json.Marshal(reqBody)
+	b, err := json.Marshal(payload)
 	if err != nil {
 		return "", err
 	}
 
-	req, err := http.NewRequest("POST", "https://openrouter.ai/api/v1/chat/completions", bytes.NewBuffer(data))
+	req, err := http.NewRequest("POST", openRouterURL, bytes.NewBuffer(b))
 	if err != nil {
 		return "", err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.APIKey))
+	req.Header.Set("Authorization", "Bearer "+apiKey)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -78,18 +62,16 @@ func (c *MistralClient) ExtractURL(message string) (string, error) {
 
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("LLM API error: %s", string(bodyBytes))
+		return "", fmt.Errorf("OpenRouter API error: %s", string(bodyBytes))
 	}
 
-	var response openRouterResponse
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+	var res ResponsePayload
+	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		return "", err
 	}
-
-	if len(response.Choices) == 0 {
-		return "", errors.New("no response from LLM")
+	if len(res.Choices) == 0 {
+		return "", fmt.Errorf("no response from OpenRouter")
 	}
 
-	url := response.Choices[0].Message.Content
-	return url, nil
+	return res.Choices[0].Message.Content, nil
 }
