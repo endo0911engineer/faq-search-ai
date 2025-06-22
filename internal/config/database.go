@@ -46,6 +46,7 @@ func InitDB() (*sql.DB, error) {
 			user_id INTEGER NOT NULL,
 			url TEXT NOT NULL,
 			label TEXT,
+			active BOOLEAN NOT NULL DEFAULT 1,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (user_id) REFERENCES users(id)
 		);`
