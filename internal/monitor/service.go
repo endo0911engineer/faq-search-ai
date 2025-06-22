@@ -48,7 +48,7 @@ func IsURLAlreadyMonitored(db *sql.DB, userID int64, url string) (bool, error) {
 
 func ListMonitoredURLs(db *sql.DB, userID int64) ([]MonitoredURL, error) {
 	rows, err := db.Query(`
-		SELECT id, user_id, url, label
+		SELECT id, user_id, url, label, active
 		FROM monitored_urls
 		WHERE user_id = ?
 	`, userID)
@@ -60,7 +60,7 @@ func ListMonitoredURLs(db *sql.DB, userID int64) ([]MonitoredURL, error) {
 	var urls []MonitoredURL
 	for rows.Next() {
 		var m MonitoredURL
-		if err := rows.Scan(&m.ID, &m.UserID, &m.URL, &m.Label); err != nil {
+		if err := rows.Scan(&m.ID, &m.UserID, &m.URL, &m.Label, &m.Active); err != nil {
 			return nil, err
 		}
 		urls = append(urls, m)

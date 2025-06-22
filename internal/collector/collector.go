@@ -23,8 +23,13 @@ func Record(label string, duration time.Duration) {
 	if _, exists := metrics[label]; !exists {
 		metrics[label] = &Entry{Samples: make([]time.Duration, 0, 100)}
 	}
-	metrics[label].Count++
-	metrics[label].Samples = append(metrics[label].Samples, duration)
+	entry := metrics[label]
+	entry.Count++
+	entry.Samples = append(metrics[label].Samples, duration)
+
+	if len(entry.Samples) > 100 {
+		entry.Samples = entry.Samples[len(entry.Samples)-100:]
+	}
 }
 
 // GetMetrics returns a snapshot of the metrics to avoid data races

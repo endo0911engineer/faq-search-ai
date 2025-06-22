@@ -111,3 +111,30 @@ func HandleListMonitoredURLs(db *sql.DB) http.Handler {
 		json.NewEncoder(w).Encode(urls)
 	})
 }
+
+func HandleToggleMonitoring(db *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userID, ok := r.Context().Value(auth.UserIDContextKey).(int64)
+		if !ok {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		var req struct {
+			ID     int64 `json:"id"`
+			Active bool  `json:"active"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+
+		err := UpdateMonitoredURLActiveStatus(db, userID, req.ID, req.Active)
+		if err != nil {
+			http.Error(w, "Failed to update monitoring status", http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+	})
+}

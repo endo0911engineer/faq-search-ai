@@ -19,6 +19,13 @@ type Stat = {
   count: number;
 };
 
+type Endpoint = {
+  id: string;
+  name: string;
+  url: string;
+  active: boolean;
+}
+
 export default function Dashboard() {
   const [url, setUrl] = useState("");
   const [metrics, setMetrics] = useState<Stat[]>([]);
@@ -27,10 +34,107 @@ export default function Dashboard() {
   const [isVisible, setIsVisible] = useState(false);
   const [endpointName, setEndpointName] = useState("")
   const [endpointUrl, setEndpointUrl] = useState("")
-  const [registeredEndpoints, setRegisteredEndpoints] = useState<{ id: string; name: string; url: string }[]>([])
-  const [naturalLanguageInput, setNaturalLanguageInput] = useState("")
+  const [registeredEndpoints, setRegisteredEndpoints] = useState<Endpoint[]>([])
+  const [token, setToken] = useState<string | null>(null);
   const router = useRouter();
-  const token = localStorage.getItem("token")
+
+  
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    setToken(storedToken);
+    if (storedToken) {
+      fetchUser(storedToken);
+      fetchRegisteredEndpoints(storedToken);
+      fetchMetrics();
+
+      const interval = setInterval(() => {
+        fetchMetrics();
+      }, 5000);
+
+      return () => clearInterval(interval);
+    }
+  }, []);
+
+  const fetchUser = async (token: string) => {
+    try {
+      const res = await fetch("http://localhost:8080/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      const data = await res.json()
+      if (res.ok && data.username) {
+        setUsername(data.username)
+      }
+    } catch (e) {
+      console.error("Error fetching user info:", e)
+    }
+  };
+
+  const fetchRegisteredEndpoints = async (token: string) => {
+    try {
+      const res = await fetch("http://localhost:8080/monitor/list", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setRegisteredEndpoints(data);
+    } catch (e) {
+      console.error("Failed to fetch endpoints:", e);
+    }
+  };
+
+  const registerEndpoint = async () => {
+    if (!endpointName || !endpointUrl || !token) return;
+        try {
+      const res = await fetch("http://localhost:8080/monitor/register", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          url: endpointUrl,
+          label: endpointName,
+          active: true
+        }),
+      });
+
+      if (!res.ok) {
+        console.error("Failed to register endpoint:", await res.json());
+        return;
+      }
+
+      setEndpointName("");
+      setEndpointUrl("");
+      fetchRegisteredEndpoints(token); // 再取得
+    } catch (e) {
+      console.error("Error registering endpoint:", e);
+    }
+  };
+
+  const toggleMonitoring = async (endpointId: string, shouldActivate: boolean) => {
+    if (!token) return;
+
+    try {
+      const res = await fetch("http://localhost:8080/monitor/toggle", {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: endpointId, active: shouldActivate }),
+      });
+
+      if (!res.ok) {
+        console.error("Failed to toggle monitoring:", await res.text());
+        return;
+      }
+      
+      fetchRegisteredEndpoints(token); // 状態更新
+    } catch (e) {
+      console.error("Failed to toggle monitoring:", e);
+    }
+  };
 
   const fetchApiKey = async () => {
     const res = await fetch("http://localhost:8080/me/apikey", {
@@ -54,32 +158,6 @@ export default function Dashboard() {
     navigator.clipboard.writeText(apiKey);
   };
 
-  const sendRequest = async () => {
-    if (!url) return;
-    const start = performance.now();
-
-    try {
-      await fetch(url);
-    } catch (e) {
-      console.error("Request failed:", e);
-    }
-
-    const duration = performance.now() - start;
-
-    await fetch("http://localhost:8080/record", {
-      method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-        "X-API-Key": localStorage.getItem("apiKey") || "",
-       },
-      body: JSON.stringify({ label: url, duration }),
-    });
-
-    await fetchMetrics();
-
-    alert(`Request took ${Math.round(duration)} ms`);
-  };
-
   const fetchMetrics = async () => {
     try {
         const apiKey = localStorage.getItem("apiKey")
@@ -99,80 +177,6 @@ export default function Dashboard() {
         console.error("Error fetching metrics:", e);
       }
   };
-
-  const fetchUser = async () => {
-    try {
-        const token = localStorage.getItem("token")
-        const res = await fetch("http://localhost:8080/me", {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        })
-        const data = await res.json()
-        if (res.ok && data.username) {
-            setUsername(data.username)
-        }
-    } catch (e) {
-        console.error("Error fetching user info:", e)
-    }
-  }
-
-  const registerEndpoint = async () => {
-  if (!endpointName || !endpointUrl) {
-    return
-  }
-
-  const newEndpoint = {
-    id: crypto.randomUUID(),
-    name: endpointName,
-    url: endpointUrl,
-  }
-
-  setRegisteredEndpoints((prev) => [...prev, newEndpoint])
-  setEndpointName("")
-  setEndpointUrl("")
-}
-
-// エンドポイント登録（自然言語）
-const processNaturalLanguage = async () => {
-  if (!naturalLanguageInput.trim()) {
-    return
-  }
-
-  try {
-    // TODO: 実際のAPIリクエストを行う
-    const response = await fetch("/api/ai/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ description: naturalLanguageInput }),
-    })
-
-    if (!response.ok) {
-      throw new Error("Failed to process description")
-    }
-
-    const data = await response.json()
-
-    const newEndpoint = {
-      id: crypto.randomUUID(),
-      name: data.name,
-      url: data.url,
-    }
-
-    setRegisteredEndpoints((prev) => [...prev, newEndpoint])
-    setNaturalLanguageInput("")
-  } catch (error) {
-    console.error("AI registration error:", error)
-  }
-}
-
-  useEffect(() => {
-    fetchUser();
-  }, []);
-
-
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -314,35 +318,6 @@ const processNaturalLanguage = async () => {
                   </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
-
-          {/* 自然言語でのエンドポイント登録セクション */}
-          <Card className="shadow-lg bg-white/95 backdrop-blur">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <MessageSquare className="h-5 w-5 text-purple-600" />
-                <span>Natural Language Registration</span>
-              </CardTitle>
-              <CardDescription>
-                Describe your API endpoint in natural language and let AI help you register it automatically.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="natural-language-input">Describe your endpoint</Label>
-                <Textarea
-                  id="natural-language-input"
-                  value={naturalLanguageInput}
-                  onChange={(e) => setNaturalLanguageInput(e.target.value)}
-                  placeholder="e.g., I want to monitor my user authentication API at https://api.myapp.com/auth/login that handles user login requests"
-                  className="min-h-[100px]"
-                />
-              </div>
-              <Button onClick={processNaturalLanguage} className="bg-purple-600 hover:bg-purple-700">
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Process with AI
-              </Button>
             </CardContent>
           </Card>
 
