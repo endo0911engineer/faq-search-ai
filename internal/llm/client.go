@@ -10,7 +10,7 @@ import (
 )
 
 const openRouterURL = "https://openrouter.ai/api/v1/chat/completions"
-const model = "openrouter/mistral-7b"
+const model = "mistralai/mistral-7b-instruct"
 
 type Message struct {
 	Role    string `json:"role"`

@@ -22,5 +22,5 @@ func main() {
 	go scheduler.StartMonitoringLoop(db, 30*time.Second)
 
 	log.Printf("Server running at :%s\n", config.Port)
-	log.Fatal(http.ListenAndServe(":"+config.Port, SetupRouter(db, llmClient)))
+	log.Fatal(http.ListenAndServe(":"+config.Port, SetupRouter(db)))
 }

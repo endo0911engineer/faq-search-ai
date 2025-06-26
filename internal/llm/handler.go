@@ -27,6 +27,6 @@ func HandleLLMAnalyze() http.Handler {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"advice": result})
+		json.NewEncoder(w).Encode(map[string]string{"summary": result})
 	})
 }

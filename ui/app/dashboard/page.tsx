@@ -8,8 +8,8 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Textarea } from "@/components/ui/textarea"
-import { Activity, Key, Copy, Send, Eye, EyeOff, Plus, MessageSquare, Bookmark } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Activity, Key, Copy , Eye, EyeOff, Plus, Bookmark, Brain, Loader2, TrendingUp,  AlertTriangle, CheckCircle, } from "lucide-react"
 
 type Stat = {
   label: string;
@@ -27,7 +27,6 @@ type Endpoint = {
 }
 
 export default function Dashboard() {
-  const [url, setUrl] = useState("");
   const [metrics, setMetrics] = useState<Stat[]>([]);
   const [username, setUsername] = useState("");
   const [apiKey, setApiKey] = useState("");
@@ -35,7 +34,17 @@ export default function Dashboard() {
   const [endpointName, setEndpointName] = useState("")
   const [endpointUrl, setEndpointUrl] = useState("")
   const [registeredEndpoints, setRegisteredEndpoints] = useState<Endpoint[]>([])
-  const [advice, setAdvice] = useState("")
+  const [analysisResult, setAnalysisResult] = useState<{
+    summary: string;
+    insights: {
+      title: string;
+      description: string;
+      type: "warning" | "success" | "info";
+    }[];
+    recommendations: string[];
+  } | null>(null);
+
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const router = useRouter();
 
@@ -181,13 +190,18 @@ export default function Dashboard() {
 
   const analyzeLatency = async () => {
   try {
-    const res = await fetch("http://localhost:8080/LLM/analyze");
+    setIsAnalyzing(true);
+    const res = await fetch("http://localhost:8080/LLM/analyze", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     if (!res.ok) throw new Error(await res.text());
 
     const data = await res.json();
-    setAdvice(data.advice);
+    setAnalysisResult(data);
   } catch (e) {
     console.error("LLM analysis failed:", e);
+  } finally {
+    setIsAnalyzing(false);
   }
 };
 
@@ -227,7 +241,7 @@ export default function Dashboard() {
                   onClick={logout}
                   variant="ghost"
                   size="sm"
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
                 >
                   Logout
                 </Button>
@@ -250,7 +264,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-3">
-                <Button onClick={fetchApiKey} className="bg-blue-600 hover:bg-blue-700">
+                <Button onClick={fetchApiKey} className="bg-blue-600 hover:bg-blue-700 cursor-pointer">
                   {isVisible ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
                   {isVisible ? "Hide API Key" : "Show API Key"}
                 </Button>
@@ -307,25 +321,42 @@ export default function Dashboard() {
                   />
                 </div>
               </div>
-              <Button onClick={registerEndpoint} className="bg-indigo-600 hover:bg-indigo-700">
+              <Button onClick={registerEndpoint} className="bg-indigo-600 hover:bg-indigo-700 cursor-pointer">
                 <Plus className="h-4 w-4 mr-2" />
                 Register Endpoint
               </Button>
 
-              {/* 登録済みエンドポイント一覧 */}
+               {/* 登録済みエンドポイント一覧 */}
               {registeredEndpoints && registeredEndpoints.length > 0 && (
                 <div className="mt-6">
                   <h4 className="font-semibold text-gray-900 mb-3">Registered Endpoints</h4>
                   <div className="space-y-2">
                     {registeredEndpoints.map((endpoint) => (
                       <div key={endpoint.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div>
+                        <div className="flex-1">
                           <p className="font-medium text-gray-900">{endpoint.name}</p>
                           <p className="text-sm text-gray-600 font-mono">{endpoint.url}</p>
                         </div>
-                        <Badge variant="secondary" className="bg-green-100 text-green-800">
-                          Active
-                        </Badge>
+                        <div className="flex items-center space-x-3">
+                          <Badge
+                            variant="secondary"
+                            className={endpoint.active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}
+                          >
+                            {endpoint.active ? "Active" : "Inactive"}
+                          </Badge>
+                          <Button
+                            onClick={() => toggleMonitoring(endpoint.id, !endpoint.active)}
+                            variant={endpoint.active ? "outline" : "default"}
+                            size="sm"
+                            className={
+                              endpoint.active
+                                ? "text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                                : "bg-green-600 hover:bg-green-700 text-white"
+                            }
+                          >
+                            {endpoint.active ? "Stop" : "Start"}
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -334,46 +365,38 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* リクエスト送信セクション */}
-          <Card className="shadow-lg bg-white/95 backdrop-blur">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Send className="h-5 w-5 text-green-600" />
-                <span>Test Endpoint</span>
-              </CardTitle>
-              <CardDescription>
-                Send a test request to any endpoint to see latency metrics in real-time.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-3">
-                <div className="flex-1">
-                  <Label htmlFor="test-endpoint-url" className="sr-only">
-                    Test Endpoint URL
-                  </Label>
-                  <Input
-                    id="test-endpoint-url"
-                    type="text"
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    placeholder="https://example.com/api/endpoint"
-                    className="font-mono"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* メトリクステーブル */}
           <Card className="shadow-lg bg-white/95 backdrop-blur">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Activity className="h-5 w-5 text-purple-600" />
-                <span>Latency Metrics</span>
-              </CardTitle>
-              <CardDescription>
-                Real-time performance metrics showing P50, P95, and P99 latencies for your endpoints.
-              </CardDescription>
+              <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center space-x-2">
+                  <Activity className="h-5 w-5 text-purple-600" />
+                  <span>Latency Metrics</span>
+                </CardTitle>
+                <CardDescription>
+                  Real-time performance metrics showing P50, P95, and P99 latencies for your endpoints.
+                </CardDescription>
+              </div>
+              <Button
+                onClick={analyzeLatency}
+                disabled={isAnalyzing || !metrics || metrics.length === 0}
+                variant="default"
+                className="bg-orange-600 hover:bg-orange-700 text-white disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isAnalyzing ? (
+                    <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    分析中...
+                    </>
+                  ) : (
+                    <>
+                    <Brain className="h-4 w-4 mr-2" />
+                    LLMに分析させる
+                    </>
+                  )}
+              </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="rounded-lg border overflow-hidden">
@@ -435,6 +458,77 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </Card>
+
+          {/* AI分析結果セクション */}
+          {analysisResult && (
+            <Card className="shadow-lg bg-white/95 backdrop-blur">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Brain className="h-5 w-5 text-orange-600" />
+                  <span>AI Analysis Results</span>
+                </CardTitle>
+                <CardDescription>
+                  AI-powered insights and recommendations based on your latency metrics.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* 分析サマリー */}
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Summary</h4>
+                  <p className="text-gray-700 leading-relaxed">{analysisResult.summary}</p>
+                </div>
+
+                {/* インサイト */}
+                {analysisResult.insights && analysisResult.insights.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-3">Key Insights</h4>
+                    <div className="space-y-3">
+                      {analysisResult.insights.map((insight, index) => (
+                        <Alert
+                          key={index}
+                          className={
+                            insight.type === "warning"
+                              ? "border-yellow-200 bg-yellow-50"
+                              : insight.type === "success"
+                                ? "border-green-200 bg-green-50"
+                                : "border-blue-200 bg-blue-50"
+                          }
+                        >
+                          <div className="flex items-start space-x-2">
+                            {insight.type === "warning" && <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5" />}
+                            {insight.type === "success" && <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />}
+                            {insight.type === "info" && <TrendingUp className="h-4 w-4 text-blue-600 mt-0.5" />}
+                            <div>
+                              <AlertDescription>
+                                <strong className="font-medium">{insight.title}</strong>
+                                <p className="mt-1">{insight.description}</p>
+                              </AlertDescription>
+                            </div>
+                          </div>
+                        </Alert>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 推奨事項 */}
+                {analysisResult.recommendations && analysisResult.recommendations.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-3">Recommendations</h4>
+                    <ul className="space-y-2">
+                      {analysisResult.recommendations.map((recommendation, index) => (
+                        <li key={index} className="flex items-start space-x-2">
+                          <div className="w-1.5 h-1.5 bg-orange-600 rounded-full mt-2 flex-shrink-0"></div>
+                          <span className="text-gray-700">{recommendation}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
         </div>
       </div>
     </main>
