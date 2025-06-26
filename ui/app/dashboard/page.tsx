@@ -197,7 +197,11 @@ export default function Dashboard() {
     if (!res.ok) throw new Error(await res.text());
 
     const data = await res.json();
-    setAnalysisResult(data);
+    setAnalysisResult({
+      summary: data.summary,
+      insights: [],
+      recommendations: [],
+  });
   } catch (e) {
     console.error("LLM analysis failed:", e);
   } finally {
