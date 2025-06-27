@@ -6,11 +6,11 @@ import (
 )
 
 type Stat struct {
-	Label string        `json:"label"`
-	Count int           `json:"count"`
-	P50   time.Duration `json:"p50"`
-	P95   time.Duration `json:"p95"`
-	P99   time.Duration `json:"p99"`
+	Label string  `json:"label"`
+	Count int     `json:"count"`
+	P50   float64 `json:"p50"`
+	P95   float64 `json:"p95"`
+	P99   float64 `json:"p99"`
 }
 
 // CalculateStats returns P50, P95, P99 percentiles

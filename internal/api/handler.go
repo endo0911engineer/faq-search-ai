@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -19,9 +20,9 @@ func HandleMetrics() http.Handler {
 			output = append(output, stats.Stat{
 				Label: label,
 				Count: data.Count,
-				P50:   p50,
-				P95:   p95,
-				P99:   p99,
+				P50:   float64(p50.Milliseconds()),
+				P95:   float64(p95.Milliseconds()),
+				P99:   float64(p99.Milliseconds()),
 			})
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -45,6 +46,8 @@ func HandleRecord() http.Handler {
 			http.Error(w, "Missing or invalid label/duration", http.StatusBadRequest)
 			return
 		}
+
+		log.Printf("Received latency record - Label: %s, Duration: %f ms", p.Label, p.Duration)
 
 		d := time.Duration(p.Duration * float64(time.Millisecond))
 		collector.Record(p.Label, d)

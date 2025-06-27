@@ -19,7 +19,7 @@ func main() {
 	}
 	defer db.Close()
 
-	go scheduler.StartMonitoringLoop(db, 30*time.Second)
+	go scheduler.StartMonitoringLoop(db, 5*time.Second)
 
 	log.Printf("Server running at :%s\n", config.Port)
 	log.Fatal(http.ListenAndServe(":"+config.Port, SetupRouter(db)))

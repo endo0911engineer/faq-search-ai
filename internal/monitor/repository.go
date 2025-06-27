@@ -37,8 +37,6 @@ func UpdateMonitoredURLActiveStatus(db *sql.DB, userID int64, urlID int64, activ
 	return err
 }
 
-// monitor/repository.go
-
 func ListActiveMonitoredURLs(db *sql.DB) ([]MonitoredURL, error) {
 	rows, err := db.Query(`
 		SELECT id, user_id, url, label

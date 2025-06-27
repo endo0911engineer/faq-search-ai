@@ -426,17 +426,17 @@ export default function Dashboard() {
                           </TableCell>
                           <TableCell className="text-center">
                             <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                              {stat.p50}ms
+                              {stat.p50.toFixed(2)}ms
                             </Badge>
                           </TableCell>
                           <TableCell className="text-center">
                             <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                              {stat.p95}ms
+                              {stat.p95.toFixed(2)}ms
                             </Badge>
                           </TableCell>
                           <TableCell className="text-center">
                             <Badge variant="secondary" className="bg-red-100 text-red-800">
-                              {stat.p99}ms
+                              {stat.p99.toFixed(2)}ms
                             </Badge>
                           </TableCell>
                           <TableCell className="text-center">
