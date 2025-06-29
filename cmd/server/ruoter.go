@@ -2,10 +2,10 @@ package main
 
 import (
 	"database/sql"
-	"latency-lens/internal/api"
 	"latency-lens/internal/auth"
+	"latency-lens/internal/faq"
 	"latency-lens/internal/llm"
-	"latency-lens/internal/monitor"
+	"latency-lens/internal/middleware"
 	"net/http"
 )
 
@@ -14,21 +14,15 @@ func SetupRouter(db *sql.DB) http.Handler {
 	authHandler := auth.NewAuthHandler(db)
 
 	// Public
-	mux.Handle("/signup", api.WithCORS(http.HandlerFunc(authHandler.Signup)))
-	mux.Handle("/login", api.WithCORS(http.HandlerFunc(authHandler.Login)))
-	mux.Handle("/testapi", api.WithCORS(api.HandleTestAPI()))
+	mux.Handle("/signup", middleware.WithCORS(http.HandlerFunc(authHandler.Signup)))
+	mux.Handle("/login", middleware.WithCORS(http.HandlerFunc(authHandler.Login)))
 
 	// Protect
-	mux.Handle("/me", api.WithCORS(auth.JWTAuthMiddleware(http.HandlerFunc(authHandler.Me))))
-	mux.Handle("/me/apikey", api.WithCORS(auth.JWTAuthMiddleware(http.HandlerFunc(authHandler.APIKey))))
+	mux.Handle("/me", middleware.WithCORS(auth.JWTAuthMiddleware(http.HandlerFunc(authHandler.Me))))
 
-	mux.Handle("/metrics", api.WithCORS(authHandler.APIKeyAuthMiddleware(api.HandleMetrics())))
-	mux.Handle("/record", api.WithCORS(authHandler.APIKeyAuthMiddleware(api.HandleRecord())))
-
-	mux.Handle("/monitor/register", api.WithCORS(auth.JWTAuthMiddleware(monitor.HandleAddMonitoredURL(db))))
-	mux.Handle("/monitor/delete", api.WithCORS(auth.JWTAuthMiddleware(monitor.HandleDeleteMonitoredURL(db))))
-	mux.Handle("/monitor/list", api.WithCORS(auth.JWTAuthMiddleware(monitor.HandleListMonitoredURLs(db))))
-	mux.Handle("/monitor/toggle", api.WithCORS(auth.JWTAuthMiddleware(monitor.HandleToggleMonitoring(db))))
+	mux.Handle("/faqs", middleware.WithCORS(auth.JWTAuthMiddleware(http.HandlerFunc(faq.HandleFAQListOrCreate(db)))))
+	mux.Handle("/faqs/", middleware.WithCORS(auth.JWTAuthMiddleware(http.HandlerFunc(faq.HandleFAQDetail(db)))))
+	mux.Handle("/faqs/ask", middleware.WithCORS(auth.JWTAuthMiddleware(http.HandlerFunc(faq.HandleAskFAQ(db)))))
 
 	mux.Handle("/LLM/analyze", api.WithCORS(auth.JWTAuthMiddleware(llm.HandleLLMAnalyze())))
 

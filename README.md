@@ -1,37 +1,32 @@
-1. Go SDK
-軽量な Record(label string, startTime time.Time) 関数
+アプリの使い方（FAQ作成SaaS）
+このアプリの基本的な使い方は以下の通りです：
 
-HTTPミドルウェアまたはgRPC Interceptor
+1. ユーザーはログイン・サインアップする
+すでに実装されている /signup および /login を使用します。
 
-バッファ＋非同期送信（シンプルなHTTP POST）
+2. FAQの作成
+任意の質問・回答・言語を入力して POST /faqs に送信することでFAQが登録されます。
 
-2. メトリクス収集API
-/v1/collect エンドポイントでレイテンシ情報を受信
+例えば「Q: サービスの利用料金は？ / A: 基本無料です」など、よくある質問を登録できます。
 
-payload: { label, duration, timestamp, metadata }
+3. FAQの取得・一覧表示
+全FAQを表示するには GET /faqs
 
-認証はMVPでは簡易なAPIキー方式でOK
+特定のFAQを取得するには GET /faqs/{id}
 
-3. メトリクス集計・保存
-In-Memoryまたは簡易DB（SQLiteなど）で集計
+4. FAQの編集・削除
+編集: PUT /faqs/{id}
 
-各ラベルに対して、P50 / P95 / P99 / Countを算出
+削除: DELETE /faqs/{id}
 
-4. フロントエンドUI
-ダッシュボードで以下を表示：
+このSaaSが提供する価値
+企業や個人開発者が自分のWebサービスやAPIのFAQを簡単に作成・管理・表示できるようになります。特に以下のような場面で役立ちます：
 
-ラベル別のP50 / P95 / P99 / Count
+プロダクトの問い合わせ対応負担を減らしたい
 
-自動リフレッシュ（2秒ごと）
+多言語対応のFAQを管理したい
 
-手動で /hello 等にリクエストできるUI
-
-5. 簡単なセットアップガイド
-READMEまたはWeb UIに以下を明記：
-
-SDK導入方法
-
-データ送信の仕組み
+自動FAQ生成やLLMと組み合わせてアップグレードしたい
 
 UIの起動方法
 

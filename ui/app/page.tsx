@@ -1,418 +1,291 @@
 "use client"
 
+"use client"
+
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Activity, Key, BarChart3, ArrowRight, Star, Github, Twitter, Mail } from "lucide-react"
+import {
+  BookOpen,
+  Search,
+  Zap,
+  Users,
+  ArrowRight,
+  Sparkles,
+  Brain,
+  MessageCircleQuestion,
+  Plus,
+  ChevronRight,
+  Star,
+} from "lucide-react"
 
 export default function HomePage() {
+  const [hoveredFeature, setHoveredFeature] = useState<number | null>(null)
+
+  const features = [
+    {
+      icon: <Brain className="h-8 w-8" />,
+      title: "AI搭載検索",
+      description: "自然言語でFAQを検索。AIが最適な回答を瞬時に見つけます。",
+      color: "from-purple-500 to-pink-500",
+    },
+    {
+      icon: <Plus className="h-8 w-8" />,
+      title: "簡単FAQ作成",
+      description: "直感的なインターフェースで、誰でも簡単にFAQを作成・管理できます。",
+      color: "from-green-500 to-emerald-500",
+    },
+    {
+      icon: <Users className="h-8 w-8" />,
+      title: "チーム協業",
+      description: "チームメンバーと知識を共有し、組織全体の生産性を向上させます。",
+      color: "from-blue-500 to-cyan-500",
+    },
+    {
+      icon: <Zap className="h-8 w-8" />,
+      title: "リアルタイム更新",
+      description: "変更は即座に反映され、常に最新の情報を提供します。",
+      color: "from-orange-500 to-red-500",
+    },
+  ]
+
+  const steps = [
+    {
+      step: "01",
+      title: "アカウント作成",
+      description: "無料でアカウントを作成し、すぐに始められます。",
+      icon: <Users className="h-6 w-6" />,
+    },
+    {
+      step: "02",
+      title: "FAQを追加",
+      description: "よくある質問と回答を追加して、ナレッジベースを構築します。",
+      icon: <Plus className="h-6 w-6" />,
+    },
+    {
+      step: "03",
+      title: "AI検索を活用",
+      description: "自然言語で検索し、AIが最適な回答を提案します。",
+      icon: <Search className="h-6 w-6" />,
+    },
+  ]
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Activity className="h-8 w-8 text-blue-600" />
-            <span className="text-xl font-bold">APIMonitor</span>
-          </div>
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm">
-              Documentation
-            </Button>
-            <Button variant="ghost" size="sm">
-              Pricing
-            </Button>
-            <Button variant="outline" size="sm">
-              Sign In
-            </Button>
-            <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-              Get Started
-            </Button>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      {/* Navigation */}
+      <nav className="bg-white/80 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg">
+                <BookOpen className="h-6 w-6 text-white" />
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                FAQ Knowledge
+              </span>
+            </div>
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" className="text-gray-600 hover:text-blue-600">
+                サインイン
+              </Button>
+              <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg">
+                無料で始める
+              </Button>
+            </div>
           </div>
         </div>
-      </header>
+      </nav>
 
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="container mx-auto px-4 text-center">
-          <Badge variant="secondary" className="mb-4">
-            🚀 Real-time API Performance Monitoring
-          </Badge>
-          <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Monitor Your API Performance
+      <section className="relative py-20 px-6 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 rounded-full blur-3xl transform -translate-y-1/2"></div>
+        <div className="max-w-7xl mx-auto text-center relative">
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <Badge className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 border-purple-200">
+              <Sparkles className="h-3 w-3 mr-1" />
+              AI Powered
+            </Badge>
+          </div>
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              次世代の
+            </span>
             <br />
-            in Real-time
+            <span className="text-gray-800">ナレッジベース</span>
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Track P50/P95 latencies, monitor API health, and get instant alerts when performance degrades. Start
-            monitoring in minutes with just an API key.
+          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+            AIを活用したFAQ管理システムで、チームの知識を効率的に整理・共有。
+            <br />
+            自然言語検索で、必要な情報を瞬時に見つけることができます。
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3">
-              Start Free Trial
-              <ArrowRight className="ml-2 h-5 w-5" />
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+            <Button
+              size="lg"
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-xl text-lg px-8 py-4"
+            >
+              <Sparkles className="h-5 w-5 mr-2" />
+              無料で始める
+              <ArrowRight className="h-5 w-5 ml-2" />
             </Button>
-            <Button variant="outline" size="lg" className="text-lg px-8 py-3">
-              View Demo
+            <Button size="lg" variant="outline" className="border-2 text-lg px-8 py-4 bg-transparent">
+              <MessageCircleQuestion className="h-5 w-5 mr-2" />
+              デモを見る
             </Button>
           </div>
-          <p className="text-sm text-gray-500 mt-4">No credit card required • 14-day free trial • Setup in 2 minutes</p>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
+      <section className="py-20 px-6">
+        <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Why Choose APIMonitor?</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Everything you need to keep your APIs running smoothly and your users happy.
+            <h2 className="text-4xl font-bold mb-4 text-gray-800">なぜFAQ Knowledgeなのか？</h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              従来のFAQシステムを超えた、AI駆動の次世代ナレッジ管理プラットフォーム
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card className="text-center hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="mx-auto w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                  <Activity className="h-6 w-6 text-blue-600" />
-                </div>
-                <CardTitle>Real-time P50/P95 Monitoring</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Track response times with percentile metrics. Get instant visibility into your API performance with
-                  real-time P50 and P95 latency monitoring.
-                </CardDescription>
-              </CardContent>
-            </Card>
 
-            <Card className="text-center hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="mx-auto w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                  <Key className="h-6 w-6 text-green-600" />
-                </div>
-                <CardTitle>Simple API Key Setup</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Start monitoring in minutes. Just add your API key and begin tracking performance metrics without
-                  complex configuration or code changes.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="mx-auto w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                  <BarChart3 className="h-6 w-6 text-purple-600" />
-                </div>
-                <CardTitle>Beautiful Dashboards</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Visualize your API performance with intuitive dashboards. Custom charts, alerts, and detailed
-                  analytics to help you make data-driven decisions.
-                </CardDescription>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((feature, index) => (
+              <Card
+                key={index}
+                className="relative overflow-hidden border-0 shadow-xl bg-white/80 backdrop-blur-sm hover:shadow-2xl transition-all duration-500 hover:scale-105 cursor-pointer"
+                onMouseEnter={() => setHoveredFeature(index)}
+                onMouseLeave={() => setHoveredFeature(null)}
+              >
+                <CardHeader className="pb-4">
+                  <div
+                    className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${feature.color} flex items-center justify-center text-white mb-4 shadow-lg`}
+                  >
+                    {feature.icon}
+                  </div>
+                  <CardTitle className="text-xl mb-2">{feature.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                </CardContent>
+                {hoveredFeature === index && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 pointer-events-none" />
+                )}
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
+      {/* How it Works */}
+      <section className="py-20 px-6 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">How It Works</h2>
-            <p className="text-gray-600">Get started in three simple steps</p>
+            <h2 className="text-4xl font-bold mb-4 text-gray-800">簡単3ステップで始める</h2>
+            <p className="text-xl text-gray-600">数分でナレッジベースを構築し、チームの生産性を向上させましょう</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white text-xl font-bold mb-4">
-                1
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {steps.map((step, index) => (
+              <div key={index} className="relative">
+                <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
+                  <CardHeader className="text-center pb-4">
+                    <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4 shadow-lg">
+                      {step.step}
+                    </div>
+                    <CardTitle className="text-xl flex items-center justify-center gap-2">
+                      {step.icon}
+                      {step.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-center">
+                    <p className="text-gray-600 leading-relaxed">{step.description}</p>
+                  </CardContent>
+                </Card>
+                {index < steps.length - 1 && (
+                  <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
+                    <ChevronRight className="h-8 w-8 text-blue-400" />
+                  </div>
+                )}
               </div>
-              <h3 className="text-xl font-semibold mb-2">Sign Up & Get API Key</h3>
-              <p className="text-gray-600">
-                Create your account and receive your unique API key instantly. No setup fees or commitments.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white text-xl font-bold mb-4">
-                2
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Integrate & Start Monitoring</h3>
-              <p className="text-gray-600">
-                Add our lightweight SDK to your application or use our REST API to start sending metrics.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white text-xl font-bold mb-4">
-                3
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Analyze & Optimize</h3>
-              <p className="text-gray-600">
-                View real-time dashboards, set up alerts, and optimize your API performance based on insights.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Trusted by Developers</h2>
-            <p className="text-gray-600">See what our users are saying</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <p className="text-gray-600 mb-4">
-                  "APIMonitor helped us identify performance bottlenecks we didn't even know existed. The P95 monitoring
-                  is incredibly valuable."
-                </p>
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                    <span className="text-blue-600 font-semibold">JS</span>
-                  </div>
-                  <div>
-                    <p className="font-semibold">John Smith</p>
-                    <p className="text-sm text-gray-500">Senior Developer at TechCorp</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <p className="text-gray-600 mb-4">
-                  "Setup was incredibly easy. Within 5 minutes we had comprehensive monitoring across all our
-                  microservices."
-                </p>
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                    <span className="text-green-600 font-semibold">MJ</span>
-                  </div>
-                  <div>
-                    <p className="font-semibold">Maria Johnson</p>
-                    <p className="text-sm text-gray-500">CTO at StartupXYZ</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <p className="text-gray-600 mb-4">
-                  "The real-time alerts saved us from a major outage. APIMonitor is now essential to our monitoring
-                  stack."
-                </p>
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-3">
-                    <span className="text-purple-600 font-semibold">DL</span>
-                  </div>
-                  <div>
-                    <p className="font-semibold">David Lee</p>
-                    <p className="text-sm text-gray-500">DevOps Engineer at ScaleUp</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
-            <p className="text-gray-600">Everything you need to know about APIMonitor</p>
-          </div>
-          <div className="max-w-3xl mx-auto space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-left">How quickly can I start monitoring?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  You can start monitoring within minutes. Simply sign up, get your API key, and integrate our
-                  lightweight SDK or use our REST API.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-left">What metrics do you track?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  We track response times (P50, P95, P99), error rates, throughput, availability, and custom metrics.
-                  All data is available in real-time dashboards.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-left">Do you offer a free trial?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Yes! We offer a 14-day free trial with full access to all features. No credit card required to get
-                  started.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-left">How does pricing work?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Our pricing is based on the number of API calls monitored per month. We offer flexible plans starting
-                  from $29/month for small teams.
-                </p>
-              </CardContent>
-            </Card>
+            ))}
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to Monitor Your APIs?</h2>
-          <p className="text-xl mb-8 opacity-90">
-            Join thousands of developers who trust APIMonitor for their performance monitoring needs.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" className="text-lg px-8 py-3">
-              Start Free Trial
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="text-lg px-8 py-3 border-white text-white hover:bg-white hover:text-blue-600"
-            >
-              Contact Sales
-            </Button>
-          </div>
+      <section className="py-20 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <Card className="border-0 shadow-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white overflow-hidden relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/90 to-indigo-600/90"></div>
+            <CardContent className="relative py-16 px-8">
+              <div className="flex items-center justify-center mb-6">
+                <div className="p-4 bg-white/20 rounded-full backdrop-blur-sm">
+                  <Sparkles className="h-12 w-12" />
+                </div>
+              </div>
+              <h2 className="text-4xl font-bold mb-4">今すぐ始めませんか？</h2>
+              <p className="text-xl mb-8 text-blue-100">
+                無料プランで全機能をお試しいただけます。クレジットカード不要。
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 shadow-xl text-lg px-8 py-4">
+                  <Star className="h-5 w-5 mr-2" />
+                  無料アカウント作成
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-white/30 text-white hover:bg-white/10 text-lg px-8 py-4 bg-transparent"
+                >
+                  サインイン
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
+      <footer className="bg-gray-900 text-white py-12 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <Activity className="h-6 w-6 text-blue-400" />
-                <span className="text-lg font-bold">APIMonitor</span>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg">
+                  <BookOpen className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-lg font-bold">FAQ Knowledge</span>
               </div>
-              <p className="text-gray-400 mb-4">Real-time API performance monitoring made simple.</p>
-              <div className="flex space-x-4">
-                <Github className="h-5 w-5 text-gray-400 hover:text-white cursor-pointer" />
-                <Twitter className="h-5 w-5 text-gray-400 hover:text-white cursor-pointer" />
-                <Mail className="h-5 w-5 text-gray-400 hover:text-white cursor-pointer" />
-              </div>
+              <p className="text-gray-400">AIを活用した次世代ナレッジベース管理システム</p>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Product</h3>
+              <h3 className="font-semibold mb-4">製品</h3>
               <ul className="space-y-2 text-gray-400">
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Features
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Pricing
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Documentation
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    API Reference
-                  </a>
-                </li>
+                <li>機能</li>
+                <li>価格</li>
+                <li>API</li>
+                <li>統合</li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Company</h3>
+              <h3 className="font-semibold mb-4">サポート</h3>
               <ul className="space-y-2 text-gray-400">
-                <li>
-                  <a href="#" className="hover:text-white">
-                    About
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Blog
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Careers
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Contact
-                  </a>
-                </li>
+                <li>ヘルプセンター</li>
+                <li>ドキュメント</li>
+                <li>お問い合わせ</li>
+                <li>ステータス</li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Legal</h3>
+              <h3 className="font-semibold mb-4">会社</h3>
               <ul className="space-y-2 text-gray-400">
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Privacy Policy
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Terms of Service
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Cookie Policy
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    GDPR
-                  </a>
-                </li>
+                <li>会社概要</li>
+                <li>ブログ</li>
+                <li>採用情報</li>
+                <li>プライバシー</li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 APIMonitor. All rights reserved.</p>
+          <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
+            <p>&copy; 2024 FAQ Knowledge. All rights reserved.</p>
           </div>
         </div>
       </footer>

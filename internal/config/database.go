@@ -40,21 +40,21 @@ func InitDB() (*sql.DB, error) {
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		);`
 
-		createMonitoredURLsTable := `
-		CREATE TABLE IF NOT EXISTS monitored_urls (
+		createFaqTable := `
+		CREATE TABLE IF NOT EXISTS faqs (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			user_id INTEGER NOT NULL,
-			url TEXT NOT NULL,
-			label TEXT,
-			active BOOLEAN NOT NULL DEFAULT 1,
+			question TEXT NOT NULL,
+			answer TEXT NOT NULL,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (user_id) REFERENCES users(id)
 		);`
 
 		if _, err = DB.Exec(createUsersTable); err != nil {
 			return
 		}
-		if _, err = DB.Exec(createMonitoredURLsTable); err != nil {
+		if _, err = DB.Exec(createFaqTable); err != nil {
 			return
 		}
 	})
