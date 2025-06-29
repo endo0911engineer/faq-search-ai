@@ -30,7 +30,7 @@ export default function SigninPage() {
       if (res.ok && data.token) {
         localStorage.setItem('token', data.token)
         setMessage('Login successful!')
-        router.push('/dashboard')
+        router.push('/knowledge')
       }
     } catch (error) {
       setMessage('Login failed')

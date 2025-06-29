@@ -116,7 +116,7 @@ export default function KnowledgePage() {
           <div className="flex items-center justify-center gap-2">
             <Sparkles className="h-4 w-4 text-yellow-500" />
             <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-              {faqs.length} 件のFAQ
+              {(faqs?.length ?? 0)} 件のFAQ
             </Badge>
           </div>
         </div>

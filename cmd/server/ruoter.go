@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"latency-lens/internal/auth"
 	"latency-lens/internal/faq"
-	"latency-lens/internal/llm"
 	"latency-lens/internal/middleware"
 	"net/http"
 )
@@ -23,8 +22,6 @@ func SetupRouter(db *sql.DB) http.Handler {
 	mux.Handle("/faqs", middleware.WithCORS(auth.JWTAuthMiddleware(http.HandlerFunc(faq.HandleFAQListOrCreate(db)))))
 	mux.Handle("/faqs/", middleware.WithCORS(auth.JWTAuthMiddleware(http.HandlerFunc(faq.HandleFAQDetail(db)))))
 	mux.Handle("/faqs/ask", middleware.WithCORS(auth.JWTAuthMiddleware(http.HandlerFunc(faq.HandleAskFAQ(db)))))
-
-	mux.Handle("/LLM/analyze", api.WithCORS(auth.JWTAuthMiddleware(llm.HandleLLMAnalyze())))
 
 	return mux
 }

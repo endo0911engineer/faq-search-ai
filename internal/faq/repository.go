@@ -23,6 +23,10 @@ func GetFAQsByUser(db *sql.DB, userID int64) ([]FAQ, error) {
 		}
 		faqs = append(faqs, f)
 	}
+
+	if faqs == nil {
+		faqs = []FAQ{}
+	}
 	return faqs, nil
 }
 

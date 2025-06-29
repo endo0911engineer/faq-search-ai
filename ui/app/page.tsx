@@ -18,10 +18,13 @@ import {
   Plus,
   ChevronRight,
   Star,
+  Link,
 } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 export default function HomePage() {
   const [hoveredFeature, setHoveredFeature] = useState<number | null>(null)
+  const router = useRouter();
 
   const features = [
     {
@@ -86,10 +89,17 @@ export default function HomePage() {
               </span>
             </div>
             <div className="flex items-center gap-4">
-              <Button variant="ghost" className="text-gray-600 hover:text-blue-600">
+              <Button 
+              variant="ghost" 
+              className="text-gray-600 hover:text-blue-600"
+              onClick={() => router.push("/login")}
+              > 
                 サインイン
               </Button>
-              <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg">
+              <Button 
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg"
+              onClick={() => router.push("/signup")}
+              >
                 無料で始める
               </Button>
             </div>
