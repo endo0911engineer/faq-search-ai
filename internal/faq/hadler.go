@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"latency-lens/internal/auth"
@@ -65,9 +64,8 @@ func HandleFAQDetail(db *sql.DB) http.HandlerFunc {
 		}
 
 		// URLからIDを抽出: /faqs/{id} の形式を想定
-		path := strings.TrimPrefix(r.URL.Path, "/faqs/")
-		id, err := strconv.ParseInt(path, 10, 64)
-		if err != nil || id <= 0 {
+		id := strings.TrimPrefix(r.URL.Path, "/faqs/")
+		if id == "" {
 			http.Error(w, "Invalid FAQ ID", http.StatusBadRequest)
 			return
 		}

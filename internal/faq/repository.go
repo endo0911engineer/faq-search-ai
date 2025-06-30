@@ -41,7 +41,7 @@ func CreateFAQ(db *sql.DB, id string, userID int64, question, answer string) err
 	return err
 }
 
-func GetFAQByID(db *sql.DB, id, userID int64) (*FAQ, error) {
+func GetFAQByID(db *sql.DB, id string, userID int64) (*FAQ, error) {
 	var f FAQ
 	err := db.QueryRow(`SELECT id, user_id, question, answer FROM faqs WHERE id = ? AND user_id = ?`, id, userID).
 		Scan(&f.ID, &f.UserID, &f.Question, &f.Answer)

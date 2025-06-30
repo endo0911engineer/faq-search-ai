@@ -134,27 +134,23 @@ func DeleteFromQdrant(id string) error {
 	return nil
 }
 
-func SearchSimilarFAQs(embedding []float64, userID int64) ([]FAQ, error) {
-	url := "http://localhost:6333/collections/faq_vectors/points/search"
-
-	filter := map[string]any{
-		"must": []map[string]any{
-			{
-				"key":   "user_id",
-				"match": map[string]any{"value": userID},
+func SearchSimilarFAQs(vector []float64, userID int64, topK int) ([]string, error) {
+	query := map[string]interface{}{
+		"vector": vector,
+		"filter": map[string]interface{}{
+			"must": []map[string]interface{}{
+				{
+					"key":   "user_id",
+					"match": map[string]interface{}{"value": userID},
+				},
 			},
 		},
+		"limit": topK,
 	}
 
-	reqBody := QdrantSearchRequest{
-		Vector:      embedding,
-		Limit:       3,
-		Filter:      filter,
-		WithPayload: true,
-	}
+	body, _ := json.Marshal(query)
 
-	b, _ := json.Marshal(reqBody)
-	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(b))
+	req, _ := http.NewRequest("POST", "http://localhost:6333/collections/faq_vectors/points/search", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	res, err := http.DefaultClient.Do(req)
@@ -163,17 +159,21 @@ func SearchSimilarFAQs(embedding []float64, userID int64) ([]FAQ, error) {
 	}
 	defer res.Body.Close()
 
-	var parsed QdrantSearchResponse
-	if err := json.NewDecoder(res.Body).Decode(&parsed); err != nil {
+	var result struct {
+		Result []struct {
+			ID      interface{}            `json:"id"`
+			Payload map[string]interface{} `json:"payload"`
+		} `json:"result"`
+	}
+
+	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
 		return nil, err
 	}
 
-	var faqs []FAQ
-	for _, r := range parsed.Result {
-		q, ok1 := r.Payload["question"].(string)
-		a, ok2 := r.Payload["answer"].(string)
-		if ok1 && ok2 {
-			faqs = append(faqs, FAQ{Question: q, Answer: a})
+	var faqs []string
+	for _, r := range result.Result {
+		if q, ok := r.Payload["question"].(string); ok {
+			faqs = append(faqs, q)
 		}
 	}
 	return faqs, nil
