@@ -3,12 +3,13 @@ package faq
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"latency-lens/internal/auth"
+	"latency-lens/internal/llm"
+	"latency-lens/internal/vector"
 )
 
 func HandleFAQListOrCreate(db *sql.DB) http.HandlerFunc {
@@ -43,7 +44,7 @@ func HandleFAQListOrCreate(db *sql.DB) http.HandlerFunc {
 				return
 			}
 
-			if err := CreateFAQ(db, userID, input.Question, input.Answer); err != nil {
+			if err := CreateFAQWithVector(db, userID, input.Question, input.Answer); err != nil {
 				http.Error(w, "Failed to create FAQ", http.StatusInternalServerError)
 				return
 			}
@@ -109,7 +110,6 @@ func HandleFAQDetail(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-// faq/handler.go
 func HandleAskFAQ(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID, ok := r.Context().Value(auth.UserIDContextKey).(int64)
@@ -121,57 +121,39 @@ func HandleAskFAQ(db *sql.DB) http.HandlerFunc {
 		var payload struct {
 			Question string `json:"question"`
 		}
-		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil || payload.Question == "" {
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil || strings.TrimSpace(payload.Question) == "" {
 			http.Error(w, "Invalid question", http.StatusBadRequest)
 			return
 		}
 
-		// 1. ユーザーの全FAQを取得
-		faqs, err := GetFAQsByUser(db, userID)
+		// 1. 質問をEmbeddingに変換
+		vectorData, err := vector.GenerateEmbedding(payload.Question)
 		if err != nil {
-			http.Error(w, "Failed to retrieve FAQs", http.StatusInternalServerError)
-			return
-		}
-		if len(faqs) == 0 {
-			http.Error(w, "No FAQs available", http.StatusNotFound)
+			http.Error(w, "Failed to embed question", http.StatusInternalServerError)
 			return
 		}
 
-		// 2. 類似FAQを選ぶ（最も単純に質問に対して部分一致するもの）
-		var topMatch FAQ
-		var bestScore float64
-		for _, faq := range faqs {
-			score := simpleSimilarity(payload.Question, faq.Question)
-			if score > bestScore {
-				bestScore = score
-				topMatch = faq
-			}
+		// 2. Qdrantで類似FAQの検索（上位5件取得）
+		similarQuestions, err := vector.SearchSimilarFAQs(vectorData, userID, 5)
+		if err != nil {
+			http.Error(w, "Vector search failed", http.StatusInternalServerError)
+			return
+		}
+		if len(similarQuestions) == 0 {
+			http.Error(w, "No relevant FAQs found", http.StatusNotFound)
+			return
 		}
 
-		// 3. LLM APIを呼び出して回答を生成（MVP用の疑似呼び出し）
-		answer := callLLM(payload.Question, topMatch)
+		// 3. 類似質問をもとにLLMで回答生成
+		answer, err := llm.GenerateAnswerWithMistral(payload.Question, similarQuestions)
+		if err != nil {
+			http.Error(w, "LLM generation failed", http.StatusInternalServerError)
+			return
+		}
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{
 			"answer": answer,
 		})
 	}
-}
-
-// 疑似類似度計算（将来的にはEmbeddingに切り替え）
-func simpleSimilarity(q1, q2 string) float64 {
-	q1 = strings.ToLower(q1)
-	q2 = strings.ToLower(q2)
-	common := 0
-	for _, word := range strings.Fields(q1) {
-		if strings.Contains(q2, word) {
-			common++
-		}
-	}
-	return float64(common) / float64(len(strings.Fields(q1))+1)
-}
-
-// 疑似LLM回答
-func callLLM(question string, faq FAQ) string {
-	return fmt.Sprintf("あなたの質問に最も近いFAQは以下です:\nQ: %s\nA: %s", faq.Question, faq.Answer)
 }
