@@ -3,6 +3,7 @@ package faq
 import (
 	"database/sql"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strings"
 
@@ -44,6 +45,7 @@ func HandleFAQListOrCreate(db *sql.DB) http.HandlerFunc {
 			}
 
 			if err := CreateFAQWithVector(db, userID, input.Question, input.Answer); err != nil {
+				log.Printf("CreateFAQWithVector error: %v", err)
 				http.Error(w, "Failed to create FAQ", http.StatusInternalServerError)
 				return
 			}

@@ -1,50 +1,55 @@
-'use client'
+"use client"
 
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Plus, Edit3, Trash2, Search, BookOpen, MessageCircleQuestion, Sparkles, Save, X } from "lucide-react"
+import { Plus, Edit3, Trash2, Search, BookOpen, MessageCircleQuestion, Sparkles, Save, X, Brain } from "lucide-react"
 
 type FAQ = {
-  id: number;
-  question: string;
-  answer: string;
-};
+  id: string
+  question: string
+  answer: string
+}
 
 export default function KnowledgePage() {
-  const [username, setUsername] = useState("");
-  const [faqs, setFaqs] = useState<FAQ[]>([]);
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const router = useRouter();
+  const [username, setUsername] = useState("")
+  const [faqs, setFaqs] = useState<FAQ[]>([])
+  const [question, setQuestion] = useState("")
+  const [answer, setAnswer] = useState("")
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [token, setToken] = useState<string | null>(null)
+  const router = useRouter()
 
-    useEffect(() => {
-    const storedToken = localStorage.getItem("token");
+  const [searchQuestion, setSearchQuestion] = useState("")
+  const [searchResult, setSearchResult] = useState("")
+  const [isSearching, setIsSearching] = useState(false)
+  const [showSearchResult, setShowSearchResult] = useState(false)
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token")
+    console.log(storedToken)
     if (!storedToken) {
-      router.push("/login");
-      return;
+      router.push("/login")
+      return
     }
-    setToken(storedToken);
-    fetchFAQs(storedToken);
-  }, []);
+    setToken(storedToken)
+    fetchFAQs(storedToken)
+  }, [])
 
-    const fetchFAQs = async (token: string) => {
+  const fetchFAQs = async (token: string) => {
     const res = await fetch("http://localhost:8080/faqs", {
       headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await res.json();
-    setFaqs(data);
-  };
+    })
+    const data = await res.json()
+    setFaqs(data)
+  }
 
   const createFAQ = async () => {
-    if (!question || !answer) return;
+    if (!question || !answer) return
 
     const res = await fetch("http://localhost:8080/faqs", {
       method: "POST",
@@ -53,17 +58,17 @@ export default function KnowledgePage() {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ question, answer }),
-    });
+    })
 
     if (res.ok) {
-      fetchFAQs(token!);
-      setQuestion("");
-      setAnswer("");
+      fetchFAQs(token!)
+      setQuestion("")
+      setAnswer("")
     }
-  };
+  }
 
   const updateFAQ = async () => {
-    if (!editingId) return;
+    if (!editingId) return
 
     const res = await fetch(`http://localhost:8080/faqs/${editingId}`, {
       method: "PUT",
@@ -72,15 +77,26 @@ export default function KnowledgePage() {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ question, answer }),
-    });
+    })
 
     if (res.ok) {
-      fetchFAQs(token!);
-      setEditingId(null);
-      setQuestion("");
-      setAnswer("");
+      fetchFAQs(token!)
+      setEditingId(null)
+      setQuestion("")
+      setAnswer("")
     }
-  };
+  }
+
+  const deleteFAQ = async (id: string) => {
+    const res = await fetch(`http://localhost:8080/faqs/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    if (res.ok) fetchFAQs(token!)
+  }
 
   const cancelEdit = () => {
     setEditingId(null)
@@ -88,16 +104,28 @@ export default function KnowledgePage() {
     setAnswer("")
   }
 
+  const askFAQ = async () => {
+    if (!searchQuestion) return
 
-  const deleteFAQ = async (id: number) => {
-    const res = await fetch(`http://localhost:8080/faqs/${id}`, {
-      method: "DELETE",
+    setIsSearching(true)
+    const res = await fetch("http://localhost:8080/faqs/ask", {
+      method: "POST",
       headers: {
+        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-    });
-    if (res.ok) fetchFAQs(token!);
-  };
+      body: JSON.stringify({ question: searchQuestion }),
+    })
+
+    if (res.ok) {
+      const data = await res.json()
+      setSearchResult(data.answer)
+      setShowSearchResult(true)
+    } else {
+      console.error("質問に対する回答取得に失敗しました")
+    }
+    setIsSearching(false)
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -116,10 +144,74 @@ export default function KnowledgePage() {
           <div className="flex items-center justify-center gap-2">
             <Sparkles className="h-4 w-4 text-yellow-500" />
             <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-              {(faqs?.length ?? 0)} 件のFAQ
+              {faqs.length} 件のFAQ
             </Badge>
           </div>
         </div>
+
+        {/* AI Search Section */}
+        <Card className="shadow-xl border-0 bg-gradient-to-r from-purple-50 to-pink-50 backdrop-blur-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <Brain className="h-6 w-6 text-purple-600" />
+              AI検索
+              <Badge className="bg-purple-100 text-purple-700 text-xs">
+                <Sparkles className="h-3 w-3 mr-1" />
+                LLM Powered
+              </Badge>
+            </CardTitle>
+            <p className="text-sm text-gray-600">自然言語でナレッジベースを検索できます</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-3">
+              <Input
+                value={searchQuestion}
+                onChange={(e) => setSearchQuestion(e.target.value)}
+                placeholder="何について知りたいですか？（例：ログイン方法について教えて）"
+                className="border-2 focus:border-purple-500 transition-colors"
+                onKeyPress={(e) => e.key === "Enter" && askFAQ()}
+              />
+              <Button
+                onClick={askFAQ}
+                disabled={!searchQuestion || isSearching}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-lg min-w-[100px]"
+              >
+                {isSearching ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                ) : (
+                  <>
+                    <Search className="h-4 w-4 mr-2" />
+                    検索
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {showSearchResult && (
+              <Card className="bg-white/80 border-purple-200">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-purple-600" />
+                      AI回答
+                    </CardTitle>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setShowSearchResult(false)}
+                      className="h-6 w-6 p-0"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{searchResult}</p>
+                </CardContent>
+              </Card>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Add/Edit Form */}
         <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
@@ -191,8 +283,18 @@ export default function KnowledgePage() {
           </CardContent>
         </Card>
 
-        {/* FAQ List */}
+        {/* FAQ List - Compact Grid Layout */}
         <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+              <BookOpen className="h-6 w-6" />
+              ナレッジ一覧
+            </h2>
+            <Badge variant="outline" className="text-sm">
+              {faqs.length} 件
+            </Badge>
+          </div>
+
           {faqs.length === 0 ? (
             <Card className="shadow-lg border-0 bg-white/60 backdrop-blur-sm">
               <CardContent className="py-12 text-center">
@@ -202,51 +304,48 @@ export default function KnowledgePage() {
               </CardContent>
             </Card>
           ) : (
-            faqs.map((faq, index) => (
-              <Card
-                key={faq.id}
-                className="shadow-lg border-0 bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge variant="outline" className="text-xs">
-                          FAQ #{index + 1}
-                        </Badge>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {faqs.map((faq, index) => (
+                <Card
+                  key={faq.id}
+                  className="shadow-md border-0 bg-white/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300 hover:scale-[1.02] group"
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <Badge variant="outline" className="text-xs shrink-0">
+                        #{index + 1}
+                      </Badge>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setEditingId(faq.id)
+                            setQuestion(faq.question)
+                            setAnswer(faq.answer)
+                          }}
+                          className="h-7 w-7 p-0 hover:bg-blue-100 hover:text-blue-600"
+                        >
+                          <Edit3 className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => deleteFAQ(faq.id)}
+                          className="h-7 w-7 p-0 hover:bg-red-100 hover:text-red-600"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
                       </div>
-                      <CardTitle className="text-lg leading-relaxed text-gray-800">{faq.question}</CardTitle>
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                          setEditingId(faq.id)
-                          setQuestion(faq.question)
-                          setAnswer(faq.answer)
-                        }}
-                        className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-600"
-                      >
-                        <Edit3 className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => deleteFAQ(faq.id)}
-                        className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <Separator className="mx-6" />
-                <CardContent className="pt-4">
-                  <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">{faq.answer}</p>
-                </CardContent>
-              </Card>
-            ))
+                    <CardTitle className="text-sm leading-relaxed text-gray-800 line-clamp-2">{faq.question}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <p className="text-xs text-gray-600 leading-relaxed line-clamp-3">{faq.answer}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
         </div>
       </div>

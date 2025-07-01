@@ -35,7 +35,7 @@ func GenerateAnswerWithMistral(question string, faqs []string) (string, error) {
 	context += "\nユーザーの質問に対して、上記FAQを参考にわかりやすく回答してください。\n\n"
 
 	reqBody := MistralRequest{
-		Model: "mistral-7b-instruct", // OpenRouterで使用可能なモデル名
+		Model: "mistralai/mistral-7b-instruct:free", // OpenRouterで使用可能なモデル名
 		Messages: []Message{
 			{
 				Role:    "system",

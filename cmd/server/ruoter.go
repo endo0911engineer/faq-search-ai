@@ -19,9 +19,9 @@ func SetupRouter(db *sql.DB) http.Handler {
 	// Protect
 	mux.Handle("/me", middleware.WithCORS(auth.JWTAuthMiddleware(http.HandlerFunc(authHandler.Me))))
 
+	mux.Handle("/faqs/ask", middleware.WithCORS(auth.JWTAuthMiddleware(http.HandlerFunc(faq.HandleAskFAQ(db)))))
 	mux.Handle("/faqs", middleware.WithCORS(auth.JWTAuthMiddleware(http.HandlerFunc(faq.HandleFAQListOrCreate(db)))))
 	mux.Handle("/faqs/", middleware.WithCORS(auth.JWTAuthMiddleware(http.HandlerFunc(faq.HandleFAQDetail(db)))))
-	mux.Handle("/faqs/ask", middleware.WithCORS(auth.JWTAuthMiddleware(http.HandlerFunc(faq.HandleAskFAQ(db)))))
 
 	return mux
 }

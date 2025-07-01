@@ -41,7 +41,7 @@ func InitDB() (*sql.DB, error) {
 
 		createFaqTable := `
 		CREATE TABLE IF NOT EXISTS faqs (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			id TEXT PRIMARY KEY,
 			user_id INTEGER NOT NULL,
 			question TEXT NOT NULL,
 			answer TEXT NOT NULL,

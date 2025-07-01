@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -48,6 +49,49 @@ type FAQ struct {
 	Answer   string `json:"answer"`
 }
 
+// InitQdrantCollection checks and creates the collection if it doesn't exist
+func InitQdrantCollection() error {
+	url := "http://localhost:6333/collections/faq_vectors"
+
+	// チェック: コレクションが存在するか
+	req, _ := http.NewRequest("GET", url, nil)
+	res, err := http.DefaultClient.Do(req)
+	if err == nil && res.StatusCode == http.StatusOK {
+		// 既に存在する
+		res.Body.Close()
+		return nil
+	}
+	if res != nil {
+		res.Body.Close()
+	}
+
+	// 存在しないので作成
+	payload := map[string]interface{}{
+		"vectors": map[string]interface{}{
+			"size":     1536, // OpenAI embedding の次元数（モデルにより異なる）
+			"distance": "Cosine",
+		},
+	}
+	b, _ := json.Marshal(payload)
+
+	req, _ = http.NewRequest("PUT", url, bytes.NewReader(b))
+	req.Header.Set("Content-Type", "application/json")
+
+	res, err = http.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to create collection: %w", err)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(res.Body)
+		return fmt.Errorf("create collection failed: %s", string(bodyBytes))
+	}
+
+	log.Println("Qdrant collection 'faq_vectors' created.")
+	return nil
+}
+
 // GenerateEmbedding converts text to vector via embedding API (e.g., OpenRouter)
 func GenerateEmbedding(text string) ([]float64, error) {
 	body := EmbeddingRequest{
@@ -56,15 +100,22 @@ func GenerateEmbedding(text string) ([]float64, error) {
 	}
 	b, _ := json.Marshal(body)
 
-	req, _ := http.NewRequest("POST", "https://openrouter.ai/api/v1/embeddings", bytes.NewBuffer(b))
+	req, _ := http.NewRequest("POST", "https://api.openai.com/v1/embeddings", bytes.NewBuffer(b))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+os.Getenv("OPENROUTER_API_KEY"))
+	req.Header.Set("Authorization", "Bearer "+os.Getenv("OPENAI_API_KEY"))
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		var buf bytes.Buffer
+		buf.ReadFrom(res.Body)
+		log.Printf("OpenAI API error (%d): %s", res.StatusCode, buf.String())
+		return nil, fmt.Errorf("OpenAI API returned non-OK status: %d", res.StatusCode)
+	}
 
 	var parsed EmbeddingResponse
 	if err := json.NewDecoder(res.Body).Decode(&parsed); err != nil {
@@ -136,7 +187,9 @@ func DeleteFromQdrant(id string) error {
 
 func SearchSimilarFAQs(vector []float64, userID int64, topK int) ([]string, error) {
 	query := map[string]interface{}{
-		"vector": vector,
+		"vector":       vector,
+		"limit":        topK,
+		"with_payload": true,
 		"filter": map[string]interface{}{
 			"must": []map[string]interface{}{
 				{
@@ -145,7 +198,6 @@ func SearchSimilarFAQs(vector []float64, userID int64, topK int) ([]string, erro
 				},
 			},
 		},
-		"limit": topK,
 	}
 
 	body, _ := json.Marshal(query)
@@ -159,6 +211,16 @@ func SearchSimilarFAQs(vector []float64, userID int64, topK int) ([]string, erro
 	}
 	defer res.Body.Close()
 
+	bodyBytes, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("Qdrant raw response: %s", string(bodyBytes)) // ← デバッグに役立つ
+
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Qdrant returned status: %d, body: %s", res.StatusCode, string(bodyBytes))
+	}
+
 	var result struct {
 		Result []struct {
 			ID      interface{}            `json:"id"`
@@ -166,7 +228,7 @@ func SearchSimilarFAQs(vector []float64, userID int64, topK int) ([]string, erro
 		} `json:"result"`
 	}
 
-	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+	if err := json.Unmarshal(bodyBytes, &result); err != nil {
 		return nil, err
 	}
 
