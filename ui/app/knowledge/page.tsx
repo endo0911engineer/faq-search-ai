@@ -305,7 +305,7 @@ export default function KnowledgePage() {
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {faqs.map((faq, index) => (
+              {faqs.slice().reverse().map((faq, index) => (
                 <Card
                   key={faq.id}
                   className="shadow-md border-0 bg-white/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300 hover:scale-[1.02] group"
