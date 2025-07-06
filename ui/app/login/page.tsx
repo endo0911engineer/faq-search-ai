@@ -16,11 +16,12 @@ export default function SigninPage() {
   const [message, setMessage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
   const handleSignin = async () => {
     setIsLoading(true)
     try {
-      const res = await fetch('http://localhost:8080/login', {
+      const res = await fetch(`${BASE_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

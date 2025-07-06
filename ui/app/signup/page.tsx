@@ -19,11 +19,12 @@ export default function SignupPage() {
   const [message, setMessage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
   const handleSignup = async () => {
     setIsLoading(true)
     try {
-      const res = await fetch('http://localhost:8080/signup', {
+      const res = await fetch(`${BASE_URL}/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, username, password }),

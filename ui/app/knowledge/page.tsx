@@ -23,6 +23,7 @@ export default function KnowledgePage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const router = useRouter()
+  const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
   const [searchQuestion, setSearchQuestion] = useState("")
   const [searchResult, setSearchResult] = useState("")
@@ -41,7 +42,7 @@ export default function KnowledgePage() {
   }, [])
 
   const fetchFAQs = async (token: string) => {
-    const res = await fetch("http://localhost:8080/faqs", {
+    const res = await fetch(`${BASE_URL}/faqs`, {
       headers: { Authorization: `Bearer ${token}` },
     })
     const data = await res.json()
@@ -51,7 +52,7 @@ export default function KnowledgePage() {
   const createFAQ = async () => {
     if (!question || !answer) return
 
-    const res = await fetch("http://localhost:8080/faqs", {
+    const res = await fetch(`${BASE_URL}/faqs`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -70,7 +71,7 @@ export default function KnowledgePage() {
   const updateFAQ = async () => {
     if (!editingId) return
 
-    const res = await fetch(`http://localhost:8080/faqs/${editingId}`, {
+    const res = await fetch(`${BASE_URL}/faqs/${editingId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -88,7 +89,7 @@ export default function KnowledgePage() {
   }
 
   const deleteFAQ = async (id: string) => {
-    const res = await fetch(`http://localhost:8080/faqs/${id}`, {
+    const res = await fetch(`${BASE_URL}/faqs/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -108,7 +109,7 @@ export default function KnowledgePage() {
     if (!searchQuestion) return
 
     setIsSearching(true)
-    const res = await fetch("http://localhost:8080/faqs/ask", {
+    const res = await fetch(`${BASE_URL}/faqs/ask`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

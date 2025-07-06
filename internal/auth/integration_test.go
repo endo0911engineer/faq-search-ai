@@ -27,7 +27,7 @@ func setupTestDB(t *testing.T) *sql.DB {
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		email TEXT,
 		username TEXT,
-		password TEXT
+		password_hash TEXT
 	)`)
 	if err != nil {
 		t.Fatalf("failed to create table: %v", err)

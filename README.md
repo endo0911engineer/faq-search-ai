@@ -1,46 +1,29 @@
-アプリの使い方（FAQ作成SaaS）
-このアプリの基本的な使い方は以下の通りです：
+# faq-search-ai
 
-1. ユーザーはログイン・サインアップする
-すでに実装されている /signup および /login を使用します。
+ナレッジやFAQを簡単に登録・検索できる軽量なナレッジ検索アプリです。小規模チームや個人利用に最適です。
 
-2. FAQの作成
-任意の質問・回答・言語を入力して POST /faqs に送信することでFAQが登録されます。
+## 技術スタック
+Frontend: Next.js, TypeScript, Tailwind CSS
+Backend: Go, SQLite
+LLM/Embedding/VectorDB: mistral,OpenAi embedding, qdrant
 
-例えば「Q: サービスの利用料金は？ / A: 基本無料です」など、よくある質問を登録できます。
+## 主な機能
+- ユーザー認証
+- ナレッジの登録・編集・削
+- ナレッジの検索
 
-3. FAQの取得・一覧表示
-全FAQを表示するには GET /faqs
-
-特定のFAQを取得するには GET /faqs/{id}
-
-4. FAQの編集・削除
-編集: PUT /faqs/{id}
-
-削除: DELETE /faqs/{id}
-
-このSaaSが提供する価値
-企業や個人開発者が自分のWebサービスやAPIのFAQを簡単に作成・管理・表示できるようになります。特に以下のような場面で役立ちます：
-
-プロダクトの問い合わせ対応負担を減らしたい
-
-多言語対応のFAQを管理したい
-
-自動FAQ生成やLLMと組み合わせてアップグレードしたい
-
-UIの起動方法
-
-latency-lens/
+## 主要ディレクトリ構成
+```text
+faq-search-ai/
 ├── cmd/
-│   └── server/           # アプリケーションのエントリ
+│   └── server/           
 │       └── main.go
-|       |__ router.go
+|       |__ router.go  # 各エンドポイント定義
 ├── internal/
-│   ├── api/              # HTTPハンドラなどAPI層
-│   │   ├── handler.go
-│   │   └── middleware.go
-│   ├── auth/             # APIキー認証などの認証ロジッ
-|   |
+│   ├── config/             
+│   │   ├── config.go
+│   │   └── database.go
+│   ├── auth/            
 │   │   └── middleware.go
 |   |   |__ handler.go
 |   |   |__ jwt.go
@@ -49,22 +32,35 @@ latency-lens/
 |   |   |__ repository.go
 |   |   |__ service.go
 |   |  
-│   ├── collector/        # 計測したリクエストの保存・取得
-│   │   └── collector.go
-│   ├── stats/            # P50, P95, P99 などの統計計算
-│   │   └── stats.go
-│   └── config/           # 設定・APIキー管理など
-│       └── config.go
-|       |__ database.go
-|   |
-|   |__ monitor/
-|       |__ handler.go
-|       |__ model.go
-|       |__ repository.go
-|       |__ service.go
+│   ├── faq/      
+│   │   └── handler.go
+|   |   |__ model.go
+|   |   |__ repository.go
+│   ├── llm/            
+│   │   └── llm.go
+│   └── middleware/           
+│   |   └── withcors.go
+|   |__ vector/
+|       |__ qdrant.go
 |
 ├── ui/                   
-│   └── next.jsコンポーネント
-├── go.mod
-└── README.md
+│   └── app/
+|       |__knowledge/
+|           |__ page.tsx
+|       |__login/
+|           |__ page.tsx
+|       |__signup/
+|           |__ page.tsx
+|       |__ page.tsx 
+```
+
+``` bash
+git clone https://github.com//endo0911engineer/faq-search-ai
+cd faq-search-ai
+
+# 環境変数の設定
+cp .env.example .env
+
+# 
+```
 
