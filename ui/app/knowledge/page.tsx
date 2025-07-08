@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Edit3, Trash2, Search, BookOpen, MessageCircleQuestion, Sparkles, Save, X, Brain } from "lucide-react"
+import { askFAQ, createFAQ, deleteFAQ, fetchFAQs, updateFAQ } from "@/services/api"
 
 type FAQ = {
   id: string
@@ -16,7 +17,6 @@ type FAQ = {
 }
 
 export default function KnowledgePage() {
-  const [username, setUsername] = useState("")
   const [faqs, setFaqs] = useState<FAQ[]>([])
   const [question, setQuestion] = useState("")
   const [answer, setAnswer] = useState("")
@@ -32,7 +32,6 @@ export default function KnowledgePage() {
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token")
-    console.log(storedToken)
     if (!storedToken) {
       router.push("/login")
       return
@@ -41,62 +40,41 @@ export default function KnowledgePage() {
     fetchFAQs(storedToken)
   }, [])
 
-  const fetchFAQs = async (token: string) => {
-    const res = await fetch(`${BASE_URL}/faqs`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    const data = await res.json()
-    setFaqs(data)
-  }
-
-  const createFAQ = async () => {
+  const createNewFAQ = async () => {
     if (!question || !answer) return
-
-    const res = await fetch(`${BASE_URL}/faqs`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ question, answer }),
-    })
-
-    if (res.ok) {
-      fetchFAQs(token!)
+     try {
+      await createFAQ(token!, question, answer)
+      const updatedFaqs = await fetchFAQs(token!)
+      setFaqs(updatedFaqs)
       setQuestion("")
       setAnswer("")
+    } catch (e) {
+      console.error(e)
     }
   }
 
-  const updateFAQ = async () => {
+  const updateExistingFAQ = async () => {
     if (!editingId) return
-
-    const res = await fetch(`${BASE_URL}/faqs/${editingId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ question, answer }),
-    })
-
-    if (res.ok) {
-      fetchFAQs(token!)
+    try {
+      await updateFAQ(token!, editingId, question, answer)
+      const updatedFaqs = await fetchFAQs(token!)
+      setFaqs(updatedFaqs)
       setEditingId(null)
       setQuestion("")
       setAnswer("")
+    } catch (e) {
+      console.error(e)
     }
   }
 
-  const deleteFAQ = async (id: string) => {
-    const res = await fetch(`${BASE_URL}/faqs/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-
-    if (res.ok) fetchFAQs(token!)
+  const deleteExistingFAQ = async (id: string) => {
+    try {
+      await deleteFAQ(token!, id)
+      const updatedFaqs = await fetchFAQs(token!)
+      setFaqs(updatedFaqs)
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   const cancelEdit = () => {
@@ -105,27 +83,18 @@ export default function KnowledgePage() {
     setAnswer("")
   }
 
-  const askFAQ = async () => {
+  const askQuestion = async () => {
     if (!searchQuestion) return
-
     setIsSearching(true)
-    const res = await fetch(`${BASE_URL}/faqs/ask`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ question: searchQuestion }),
-    })
-
-    if (res.ok) {
-      const data = await res.json()
+    try {
+      const data = await askFAQ(token!, searchQuestion)
       setSearchResult(data.answer)
       setShowSearchResult(true)
-    } else {
-      console.error("質問に対する回答取得に失敗しました")
+    } catch (e) {
+      console.error("質問に対する回答取得に失敗しました", e)
+    } finally {
+      setIsSearching(false)
     }
-    setIsSearching(false)
   }
 
   return (
@@ -170,10 +139,10 @@ export default function KnowledgePage() {
                 onChange={(e) => setSearchQuestion(e.target.value)}
                 placeholder="何について知りたいですか？（例：ログイン方法について教えて）"
                 className="border-2 focus:border-purple-500 transition-colors"
-                onKeyPress={(e) => e.key === "Enter" && askFAQ()}
+                onKeyPress={(e) => e.key === "Enter" && askQuestion()}
               />
               <Button
-                onClick={askFAQ}
+                onClick={askQuestion}
                 disabled={!searchQuestion || isSearching}
                 className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-lg min-w-[100px]"
               >
@@ -258,7 +227,7 @@ export default function KnowledgePage() {
             </div>
             <div className="flex gap-3 pt-2">
               <Button
-                onClick={editingId ? updateFAQ : createFAQ}
+                onClick={editingId ? updateExistingFAQ : createNewFAQ}
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg"
                 disabled={!question || !answer}
               >
@@ -332,7 +301,7 @@ export default function KnowledgePage() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => deleteFAQ(faq.id)}
+                          onClick={() => deleteExistingFAQ(faq.id)}
                           className="h-7 w-7 p-0 hover:bg-red-100 hover:text-red-600"
                         >
                           <Trash2 className="h-3 w-3" />

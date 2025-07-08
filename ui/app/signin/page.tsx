@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Mail, Lock, Eye, EyeOff } from "lucide-react"
+import { sign } from 'crypto'
+import { signin } from '@/services/api'
 
 export default function SigninPage() {
   const [email, setEmail] = useState("")
@@ -21,20 +23,12 @@ export default function SigninPage() {
   const handleSignin = async () => {
     setIsLoading(true)
     try {
-      const res = await fetch(`${BASE_URL}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      })
-      
-      const data = await res.json()
-      if (res.ok && data.token) {
-        localStorage.setItem('token', data.token)
-        setMessage('Login successful!')
-        router.push('/knowledge')
-      }
+      const data = await signin(email, password)
+      localStorage.setItem('token', data.token)
+      setMessage('Login successful!')
+      router.push('/knowledge')
     } catch (error) {
-      setMessage('Login failed')
+      setMessage((error as Error).message || 'Login failed')
     } finally {
       setIsLoading(false)
     }

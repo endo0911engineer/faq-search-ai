@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Mail, User, Lock, Eye, EyeOff } from "lucide-react"
+import { signup } from '@/services/api'
 
 
 export default function SignupPage() {
@@ -19,29 +20,15 @@ export default function SignupPage() {
   const [message, setMessage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-  const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
   const handleSignup = async () => {
     setIsLoading(true)
-    try {
-      const res = await fetch(`${BASE_URL}/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, username, password }),
-      })
-      
-      if (!res.ok) {
-        const errorText = await res.text(); 
-        throw new Error(`Signup failed: ${errorText}`);
-      }
-      
-      const data = await res.json()
-      if (res.ok) {
-        setMessage('Signup successful! You can now log in.')
-        router.push('/login') 
-      }
+     try {
+      await signup(email, username, password)
+      setMessage('Signup successful! You can now log in.')
+      router.push('/login')
     } catch (error) {
-        setMessage('Signup failed')
+      setMessage((error as Error).message || 'Signup failed')
     } finally {
       setIsLoading(false)
     }
