@@ -3,7 +3,7 @@ package auth_test
 import (
 	"bytes"
 	"encoding/json"
-	"latency-lens/internal/auth"
+	"faq-search-ai/internal/auth"
 	"net/http"
 	"net/http/httptest"
 	"testing"

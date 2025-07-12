@@ -3,25 +3,27 @@ package faq
 import (
 	"database/sql"
 	"errors"
+	"faq-search-ai/internal/model"
+	"faq-search-ai/internal/vector"
 	"fmt"
-	"latency-lens/internal/vector"
+	"time"
 
 	"github.com/google/uuid"
 )
 
-func GetFAQsByUser(db *sql.DB, userID int64) ([]FAQ, error) {
+func GetFAQsByUser(db *sql.DB, userID int64) ([]model.FAQ, error) {
 	rows, err := db.Query(`
-		SELECT id, question, answer, created_at, updated_at
+		SELECT id, user_id, question, answer, created_at, updated_at
 		FROM faqs WHERE user_id = ? ORDER BY created_at DESC`, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var faqs []FAQ
+	var faqs []model.FAQ
 	for rows.Next() {
-		var f FAQ
-		err := rows.Scan(&f.ID, &f.Question, &f.Answer, &f.CreatedAt, &f.UpdatedAt)
+		var f model.FAQ
+		err := rows.Scan(&f.ID, &f.UserID, &f.Question, &f.Answer, &f.CreatedAt, &f.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -29,20 +31,21 @@ func GetFAQsByUser(db *sql.DB, userID int64) ([]FAQ, error) {
 	}
 
 	if faqs == nil {
-		faqs = []FAQ{}
+		faqs = []model.FAQ{}
 	}
 	return faqs, nil
 }
 
 func CreateFAQ(db *sql.DB, id string, userID int64, question, answer string) error {
+	now := time.Now()
 	_, err := db.Exec(`
-		INSERT INTO faqs (id, user_id, question, answer)
-		VALUES (?, ?, ?, ?)`, id, userID, question, answer)
+		INSERT INTO faqs (id, user_id, question, answer, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?)`, id, userID, question, answer, now, now)
 	return err
 }
 
-func GetFAQByID(db *sql.DB, id string, userID int64) (*FAQ, error) {
-	var f FAQ
+func GetFAQByID(db *sql.DB, id string, userID int64) (*model.FAQ, error) {
+	var f model.FAQ
 	err := db.QueryRow(`SELECT id, user_id, question, answer FROM faqs WHERE id = ? AND user_id = ?`, id, userID).
 		Scan(&f.ID, &f.UserID, &f.Question, &f.Answer)
 	if err != nil {
@@ -54,7 +57,7 @@ func GetFAQByID(db *sql.DB, id string, userID int64) (*FAQ, error) {
 	return &f, nil
 }
 
-func UpdateFAQ(db *sql.DB, faq *FAQ) error {
+func UpdateFAQ(db *sql.DB, faq *model.FAQ) error {
 	result, err := db.Exec(`UPDATE faqs SET question = ?, answer = ? WHERE id = ? AND user_id = ?`, faq.Question, faq.Answer, faq.ID, faq.UserID)
 	if err != nil {
 		return err
@@ -72,7 +75,7 @@ func UpdateFAQ(db *sql.DB, faq *FAQ) error {
 	if err != nil {
 		return err
 	}
-	return vector.UpsertToQdrant(faq.ID, faq.UserID, faq.Question, vectorData)
+	return vector.UpsertToQdrant(faq.ID, faq.UserID, faq.Question, faq.Answer, vectorData)
 }
 
 func DeleteFAQ(db *sql.DB, id string, userID int64) error {
@@ -111,7 +114,7 @@ func CreateFAQWithVector(db *sql.DB, userID int64, question, answer string) erro
 	}
 
 	// 3. Qdrantに登録
-	if err := vector.UpsertToQdrant(id, userID, question, vectorData); err != nil {
+	if err := vector.UpsertToQdrant(id, userID, question, answer, vectorData); err != nil {
 		return err
 	}
 

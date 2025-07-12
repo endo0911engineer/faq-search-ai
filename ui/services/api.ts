@@ -51,7 +51,6 @@ export async function createFAQ(token: string, question: string, answer: string)
     body: JSON.stringify({ question, answer }),
   })
   if (!res.ok) throw new Error("Failed to create FAQ")
-  return res.json()
 }
 
 export async function updateFAQ(token: string, id: string, question: string, answer: string) {
@@ -64,7 +63,6 @@ export async function updateFAQ(token: string, id: string, question: string, ans
     body: JSON.stringify({ question, answer }),
   })
   if (!res.ok) throw new Error("Failed to update FAQ")
-  return res.json()
 }
 
 export async function deleteFAQ(token: string, id: string) {

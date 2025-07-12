@@ -1,4 +1,4 @@
-module latency-lens
+module faq-search-ai
 
 go 1.23.2
 

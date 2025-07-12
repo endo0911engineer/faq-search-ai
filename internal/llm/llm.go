@@ -3,6 +3,7 @@ package llm
 import (
 	"bytes"
 	"encoding/json"
+	"faq-search-ai/internal/model"
 	"fmt"
 	"io"
 	"net/http"
@@ -26,16 +27,18 @@ type MistralResponse struct {
 }
 
 // GenerateAnswerWithMistral takes a question and relevant FAQs, and returns an answer from the LLM
-func GenerateAnswerWithMistral(question string, faqs []string) (string, error) {
+func GenerateAnswerWithMistral(question string, faqs []model.FAQ) (string, error) {
 	context := "以下はユーザーから登録されたFAQです：\n\n"
 	for _, faq := range faqs {
-		context += "- " + faq + "\n"
+		context += "Q: " + faq.Question + "\n"
+		context += "A: " + faq.Answer + "\n\n"
+
 	}
 
 	context += "\nユーザーの質問に対して、上記FAQを参考にわかりやすく回答してください。\n\n"
 
 	reqBody := MistralRequest{
-		Model: "mistralai/mistral-7b-instruct:free", // OpenRouterで使用可能なモデル名
+		Model: "mistralai/mistral-7b-instruct:free",
 		Messages: []Message{
 			{
 				Role:    "system",

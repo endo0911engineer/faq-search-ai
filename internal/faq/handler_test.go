@@ -5,8 +5,9 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"latency-lens/internal/auth"
-	"latency-lens/internal/faq"
+	"faq-search-ai/internal/auth"
+	"faq-search-ai/internal/faq"
+	"faq-search-ai/internal/model"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -55,7 +56,7 @@ func TestHandleFAQListOrCreate_Get(t *testing.T) {
 	if rr.Code != http.StatusOK {
 		t.Errorf("expected 200, got %d", rr.Code)
 	}
-	var faqs []faq.FAQ
+	var faqs []model.FAQ
 	if err := json.NewDecoder(rr.Body).Decode(&faqs); err != nil {
 		t.Errorf("failed to decode response: %v", err)
 	}

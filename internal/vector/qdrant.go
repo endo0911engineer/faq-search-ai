@@ -3,6 +3,7 @@ package vector
 import (
 	"bytes"
 	"encoding/json"
+	"faq-search-ai/internal/model"
 	"fmt"
 	"io"
 	"log"
@@ -44,20 +45,13 @@ type QdrantSearchResponse struct {
 	} `json:"result"`
 }
 
-type FAQ struct {
-	Question string `json:"question"`
-	Answer   string `json:"answer"`
-}
-
 // InitQdrantCollection checks and creates the collection if it doesn't exist
 func InitQdrantCollection() error {
 	url := "http://localhost:6333/collections/faq_vectors"
 
-	// チェック: コレクションが存在するか
 	req, _ := http.NewRequest("GET", url, nil)
 	res, err := http.DefaultClient.Do(req)
 	if err == nil && res.StatusCode == http.StatusOK {
-		// 既に存在する
 		res.Body.Close()
 		return nil
 	}
@@ -65,10 +59,9 @@ func InitQdrantCollection() error {
 		res.Body.Close()
 	}
 
-	// 存在しないので作成
 	payload := map[string]interface{}{
 		"vectors": map[string]interface{}{
-			"size":     1536, // OpenAI embedding の次元数（モデルにより異なる）
+			"size":     1536, // OpenAI embedding の次元数
 			"distance": "Cosine",
 		},
 	}
@@ -129,12 +122,13 @@ func GenerateEmbedding(text string) ([]float64, error) {
 }
 
 // UpsertToQdrant saves a vector with metadata to Qdrant
-func UpsertToQdrant(id string, userID int64, question string, vector []float64) error {
+func UpsertToQdrant(id string, userID int64, question, answer string, vector []float64) error {
 	point := QdrantPoint{
 		ID:     id,
 		Vector: vector,
 		Payload: map[string]interface{}{
 			"user_id":  userID,
+			"answer":   answer,
 			"question": question,
 		},
 	}
@@ -185,7 +179,7 @@ func DeleteFromQdrant(id string) error {
 	return nil
 }
 
-func SearchSimilarFAQs(vector []float64, userID int64, topK int) ([]string, error) {
+func SearchSimilarFAQs(vector []float64, userID int64, topK int) ([]model.FAQ, error) {
 	query := map[string]interface{}{
 		"vector":       vector,
 		"limit":        topK,
@@ -215,7 +209,6 @@ func SearchSimilarFAQs(vector []float64, userID int64, topK int) ([]string, erro
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("Qdrant raw response: %s", string(bodyBytes)) // ← デバッグに役立つ
 
 	if res.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("Qdrant returned status: %d, body: %s", res.StatusCode, string(bodyBytes))
@@ -232,10 +225,12 @@ func SearchSimilarFAQs(vector []float64, userID int64, topK int) ([]string, erro
 		return nil, err
 	}
 
-	var faqs []string
+	var faqs []model.FAQ
 	for _, r := range result.Result {
 		if q, ok := r.Payload["question"].(string); ok {
-			faqs = append(faqs, q)
+			if a, ok := r.Payload["answer"].(string); ok {
+				faqs = append(faqs, model.FAQ{Question: q, Answer: a})
+			}
 		}
 	}
 	return faqs, nil

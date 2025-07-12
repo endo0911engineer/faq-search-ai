@@ -1,8 +1,8 @@
 package main
 
 import (
-	"latency-lens/internal/config"
-	"latency-lens/internal/vector"
+	"faq-search-ai/internal/config"
+	"faq-search-ai/internal/vector"
 	"log"
 	"net/http"
 

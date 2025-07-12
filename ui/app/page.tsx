@@ -89,7 +89,7 @@ export default function HomePage() {
               <Button 
               variant="ghost" 
               className="text-gray-600 hover:text-blue-600"
-              onClick={() => router.push("/login")}
+              onClick={() => router.push("/signin")}
               > 
                 サインイン
               </Button>

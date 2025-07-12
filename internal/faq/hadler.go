@@ -7,9 +7,10 @@ import (
 	"net/http"
 	"strings"
 
-	"latency-lens/internal/auth"
-	"latency-lens/internal/llm"
-	"latency-lens/internal/vector"
+	"faq-search-ai/internal/auth"
+	"faq-search-ai/internal/llm"
+	"faq-search-ai/internal/model"
+	"faq-search-ai/internal/vector"
 )
 
 func HandleFAQListOrCreate(db *sql.DB) http.HandlerFunc {
@@ -83,7 +84,7 @@ func HandleFAQDetail(db *sql.DB) http.HandlerFunc {
 			json.NewEncoder(w).Encode(faq)
 
 		case http.MethodPut:
-			var updatedFAQ FAQ
+			var updatedFAQ model.FAQ
 			if err := json.NewDecoder(r.Body).Decode(&updatedFAQ); err != nil {
 				http.Error(w, "Invalid request body", http.StatusBadRequest)
 				return

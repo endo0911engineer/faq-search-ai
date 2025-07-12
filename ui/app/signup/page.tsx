@@ -26,7 +26,7 @@ export default function SignupPage() {
      try {
       await signup(email, username, password)
       setMessage('Signup successful! You can now log in.')
-      router.push('/login')
+      router.push('/signin')
     } catch (error) {
       setMessage((error as Error).message || 'Signup failed')
     } finally {

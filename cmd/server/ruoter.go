@@ -2,9 +2,9 @@ package main
 
 import (
 	"database/sql"
-	"latency-lens/internal/auth"
-	"latency-lens/internal/faq"
-	"latency-lens/internal/middleware"
+	"faq-search-ai/internal/auth"
+	"faq-search-ai/internal/faq"
+	"faq-search-ai/internal/middleware"
 	"net/http"
 )
 

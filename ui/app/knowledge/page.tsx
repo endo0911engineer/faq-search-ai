@@ -23,7 +23,6 @@ export default function KnowledgePage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const router = useRouter()
-  const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
   const [searchQuestion, setSearchQuestion] = useState("")
   const [searchResult, setSearchResult] = useState("")
@@ -33,12 +32,17 @@ export default function KnowledgePage() {
   useEffect(() => {
     const storedToken = localStorage.getItem("token")
     if (!storedToken) {
-      router.push("/login")
+      router.push("/signin")
       return
     }
     setToken(storedToken)
-    fetchFAQs(storedToken)
   }, [])
+
+  useEffect(() => {
+    if(token) {
+      fetchFAQs(token).then(setFaqs).catch(console.error)
+    }
+  }, [token])
 
   const createNewFAQ = async () => {
     if (!question || !answer) return
