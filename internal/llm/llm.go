@@ -28,14 +28,20 @@ type MistralResponse struct {
 
 // GenerateAnswerWithMistral takes a question and relevant FAQs, and returns an answer from the LLM
 func GenerateAnswerWithMistral(question string, faqs []model.FAQ) (string, error) {
-	context := "以下はユーザーから登録されたFAQです：\n\n"
+	context := "以下はユーザーから登録されたFAQです。\n\n"
 	for _, faq := range faqs {
-		context += "Q: " + faq.Question + "\n"
-		context += "A: " + faq.Answer + "\n\n"
-
+		context += fmt.Sprintf("Q: %s\nA: %s\n\n", faq.Question, faq.Answer)
 	}
 
-	context += "\nユーザーの質問に対して、上記FAQを参考にわかりやすく回答してください。\n\n"
+	context += `
+	ユーザーから以下のような質問がありました：
+	質問： ` + question + `
+	
+	上記のFAQを参考に、正確かつ具体的に回答してください。
+    - 回答には誤った情報を含めないでください
+    - 不明な点は「詳細はサポートにご確認ください」と補足してください
+    - できる限りFAQ内の内容に忠実に答えてください
+	`
 
 	reqBody := MistralRequest{
 		Model: "mistralai/mistral-7b-instruct:free",
@@ -46,7 +52,7 @@ func GenerateAnswerWithMistral(question string, faqs []model.FAQ) (string, error
 			},
 			{
 				Role:    "user",
-				Content: context + "質問: " + question,
+				Content: context,
 			},
 		},
 	}
