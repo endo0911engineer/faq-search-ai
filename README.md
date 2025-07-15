@@ -12,6 +12,21 @@ LLM/Embedding/VectorDB: mistral,OpenAi embedding, qdrant
 - ナレッジの登録・編集・削
 - ナレッジの検索
 
+## システム構成
+- **Frontend:** Next.js
+- **Backend:** Go 
+- **DB:** SQLite (ユーザー・FAQ管理)
+- **Vector DB:** Qdrant (類似FAQ検索)
+- **LLM:** OpenRouter 経由で Mistral 7B を呼び出し回答を作成。
+
+```mermaid
+flowchart TD
+    FE[Frontend (Next.js)] --> BE[Backend (Go API)]
+    BE --> DB[SQLite]
+    BE --> QD[Qdrant]
+    BE --> LLM[Mistral API via OpenRouter]
+```
+
 ## 主要ディレクトリ構成
 ```text
 faq-search-ai/
@@ -25,7 +40,8 @@ faq-search-ai/
 │   │   └── database.go
 │   ├── auth/            
 │   │   └── middleware.go
-|   |   |__ handler.go
+|   |   |__ handler.go # 認証関連のハンドラー
+|   |   |__ integration_test.go # 認証の一連の機能が動作するかのテスト 
 |   |   |__ jwt.go
 |   |   |__ hash.go
 |   |   |__ model.go
@@ -33,25 +49,25 @@ faq-search-ai/
 |   |   |__ service.go
 |   |  
 │   ├── faq/      
-│   │   └── handler.go
+│   │   └── handler.go # FAQ関連の処理のハンドラー
 |   |   |__ model.go
 |   |   |__ repository.go
 │   ├── llm/            
-│   │   └── llm.go
+│   │   └── llm.go # LLMの設定
 │   └── middleware/           
 │   |   └── withcors.go
 |   |__ vector/
-|       |__ qdrant.go
+|       |__ qdrant.go # qdrantの設定
 |
 ├── ui/                   
 │   └── app/
 |       |__knowledge/
-|           |__ page.tsx
-|       |__login/
-|           |__ page.tsx
+|           |__ page.tsx # ナレッジ登録・検索画面
+|       |__signin/
+|           |__ page.tsx # 
 |       |__signup/
 |           |__ page.tsx
-|       |__ page.tsx 
+|       |__ page.tsx # ホーム画面
 ```
 
 ## 環境セットアップ
@@ -83,7 +99,9 @@ docker compose up --build
 ブラウザで以下にアクセスしてください:
 
 フロントエンド: http://localhost:3000
+
 バックエンドAPI: http://localhost:8080
+
 Qdrant ダッシュボード: http://localhost:6333/dashboard
 
 
