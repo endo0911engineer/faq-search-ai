@@ -1,11 +1,6 @@
 # faq-search-ai
 
-ナレッジやFAQを簡単に登録・検索できる軽量なナレッジ検索アプリです。小規模チームや個人利用に最適です。
-
-## 技術スタック
-Frontend: Next.js, TypeScript, Tailwind CSS
-Backend: Go, SQLite
-LLM/Embedding/VectorDB: mistral,OpenAi embedding, qdrant
+ナレッジやFAQを簡単に登録・検索できる軽量なナレッジ検索アプリです。現在はテキストデータの手動入力によってナレッジを蓄積していますが、pdfファイルや音声データをナレッジに変換するような拡張も考えております。
 
 ## 主な機能
 - ユーザー認証
@@ -19,13 +14,14 @@ LLM/Embedding/VectorDB: mistral,OpenAi embedding, qdrant
 - **Vector DB:** Qdrant (類似FAQ検索)
 - **LLM:** OpenRouter 経由で Mistral 7B を呼び出し回答を作成。
 
-```mermaid
-flowchart TD
-    FE[Frontend (Next.js)] --> BE[Backend (Go API)]
-    BE --> DB[SQLite]
-    BE --> QD[Qdrant]
-    BE --> LLM[Mistral API via OpenRouter]
-```
+[Frontend (Next.js)]
+        |
+        | HTTP (Bearer Token)
+        v
+[Backend (Go API)] -----> [Qdrant (Vector Search)]
+        |
+        v
+[SQLite]     [LLM (Mistral via OpenRouter)]
 
 ## 主要ディレクトリ構成
 ```text
