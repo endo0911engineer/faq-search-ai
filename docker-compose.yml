@@ -9,8 +9,8 @@ services:
       - "8080:8080"
     env_file:
       - .env
-    volumes:
-      - ./internal/config:/data
+    networks:
+      - faq_net
     restart: unless-stopped
 
   frontend:
@@ -25,6 +25,8 @@ services:
       - backend
     env_file:
       - .env
+    networks:
+      - faq_net
     restart: unless-stopped
 
   qdrant:
@@ -33,7 +35,12 @@ services:
       - "6333:6333"
     volumes:
       - qdrant_data:/qdrant/storage
+    networks:
+      - faq_net
     restart: unless-stopped
     
 volumes:
   qdrant_data:
+
+networks:
+  faq_net:

@@ -3,6 +3,7 @@ package vector
 import (
 	"bytes"
 	"encoding/json"
+	"faq-search-ai/internal/config"
 	"faq-search-ai/internal/model"
 	"fmt"
 	"io"
@@ -47,7 +48,7 @@ type QdrantSearchResponse struct {
 
 // InitQdrantCollection checks and creates the collection if it doesn't exist
 func InitQdrantCollection() error {
-	url := "http://localhost:6333/collections/faq_vectors"
+	url := config.QdrantURL + "/collections/faq_vectors"
 
 	req, _ := http.NewRequest("GET", url, nil)
 	res, err := http.DefaultClient.Do(req)
@@ -138,7 +139,7 @@ func UpsertToQdrant(id string, userID int64, question, answer string, vector []f
 	}
 	b, _ := json.Marshal(payload)
 
-	url := fmt.Sprintf("http://localhost:6333/collections/faq_vectors/points?wait=true")
+	url := fmt.Sprintf(config.QdrantURL + "/collections/faq_vectors/points?wait=true")
 	req, _ := http.NewRequest("PUT", url, bytes.NewBuffer(b))
 	req.Header.Set("Content-Type", "application/json")
 
@@ -162,7 +163,7 @@ func DeleteFromQdrant(id string) error {
 	}
 	b, _ := json.Marshal(payload)
 
-	url := "http://localhost:6333/collections/faq_vectors/points/delete?wait=true"
+	url := config.QdrantURL + "/collections/faq_vectors/points/delete?wait=true"
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(b))
 	req.Header.Set("Content-Type", "application/json")
 
@@ -196,7 +197,7 @@ func SearchSimilarFAQs(vector []float64, userID int64, topK int) ([]model.FAQ, e
 
 	body, _ := json.Marshal(query)
 
-	req, _ := http.NewRequest("POST", "http://localhost:6333/collections/faq_vectors/points/search", bytes.NewBuffer(body))
+	req, _ := http.NewRequest("POST", config.QdrantURL+"/collections/faq_vectors/points/search", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	res, err := http.DefaultClient.Do(req)
