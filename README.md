@@ -54,13 +54,38 @@ faq-search-ai/
 |       |__ page.tsx 
 ```
 
+## 環境セットアップ
 ``` bash
 git clone https://github.com//endo0911engineer/faq-search-ai
 cd faq-search-ai
-
-# 環境変数の設定
-cp .env.example .env
-
-# 
 ```
+以下のようなenvファイルを作成
+
+ルートディレクトリの.env
+``` bash
+PORT=8080
+JWT_SECRET=your-very-secure-secret
+QDRANT_URL=http://qdrant:6333
+DATABASE_URL=file:auth.db?cache=shared&mode=rwc
+OPENROUTER_API_KEY=your-api-key
+OPENAI_API_KEY=your-api-key
+```
+フロントエンド用の.env 
+./ui/.env
+```bash
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
+```
+
+Dockerで立ち上げる
+```bash
+docker compose up --build
+```
+ブラウザで以下にアクセスしてください:
+
+フロントエンド: http://localhost:3000
+バックエンドAPI: http://localhost:8080
+Qdrant ダッシュボード: http://localhost:6333/dashboard
+
+
+
 
