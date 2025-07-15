@@ -14,6 +14,7 @@
 - **Vector DB:** Qdrant (類似FAQ検索)
 - **LLM:** OpenRouter 経由で Mistral 7B を呼び出し回答を作成。
 
+```
 [Frontend (Next.js)]
         |
         | HTTP (Bearer Token)
@@ -22,6 +23,7 @@
         |
         v
 [SQLite]     [LLM (Mistral via OpenRouter)]
+```
 
 ## 主要ディレクトリ構成
 ```text
