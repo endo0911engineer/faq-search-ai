@@ -17,17 +17,6 @@
 ## デモ
 [![Demo Video](https://img.youtube.com/vi/17-H9nIBfpU/hqdefault.jpg)](https://www.youtube.com/watch?v=17-H9nIBfpU)
 
-```
-[Frontend (Next.js)]
-        |
-        | HTTP (Bearer Token)
-        v
-[Backend (Go API)] -----> [Qdrant (Vector Search)]
-        |
-        v
-[SQLite]     [LLM (Mistral via OpenRouter)]
-```
-
 ## 主要ディレクトリ構成
 ```text
 faq-search-ai/
