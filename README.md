@@ -14,6 +14,9 @@
 - **Vector DB:** Qdrant (類似FAQ検索)
 - **LLM:** OpenRouter 経由で Mistral 7B を呼び出し回答を作成。
 
+## デモ
+[![Demo Video](https://img.youtube.com/vi/17-H9nIBfpU/hqdefault.jpg)](https://www.youtube.com/watch?v=17-H9nIBfpU)
+
 ```
 [Frontend (Next.js)]
         |
